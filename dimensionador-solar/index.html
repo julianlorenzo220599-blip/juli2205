@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dimensionador Solar IA – RV Energía</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+
+:root{
+  --bg:#f5f7fb;
+  --bg2:#eef2f8;
+  --card:#ffffff;
+  --card2:#f7f9fc;
+  --border:#e4e9f2;
+  --border2:#cbd5e1;
+  --accent:#0f2a4d;
+  --accent-hover:#143a6a;
+  --accent2:#0e7490;
+  --accent3:#d97706;
+  --text:#0f172a;
+  --text2:#475569;
+  --text3:#94a3b8;
+  --green:#059669;
+  --red:#dc2626;
+  --yellow:#ca8a04;
+  --shadow-sm:0 1px 2px rgba(15,42,77,0.04);
+  --shadow:0 1px 2px rgba(15,42,77,0.04),0 4px 12px rgba(15,42,77,0.05);
+  --shadow-md:0 4px 24px rgba(15,42,77,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh;overflow-x:hidden;position:relative;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+body::before{content:'';position:fixed;inset:0;z-index:0;opacity:.5;pointer-events:none;
+  background-image:radial-gradient(circle at 1px 1px,#d6deeb 1px,transparent 0);
+  background-size:24px 24px;
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 60%);
+  mask-image:linear-gradient(180deg,#000 0%,transparent 60%)}
+body>*{position:relative;z-index:1}
+h1,h2,h3,h4{font-family:'Manrope','Inter',sans-serif;color:var(--text);letter-spacing:-0.018em;font-weight:700}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;border:2px solid var(--bg)}::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:var(--border2);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(15,42,77,0.25)}
+input[type=number],input[type=text],select{background:#fff;border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:9px 12px;font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(15,42,77,0.08)}
+select option{background:#fff}
+button{cursor:pointer;font-family:'Inter',sans-serif}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.92);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.nav-steps{display:flex;gap:6px;align-items:center}
+.step-pill{padding:7px 16px;border-radius:999px;font-size:12px;font-weight:600;border:1px solid var(--border2);color:var(--text2);background:#fff;transition:all .15s;cursor:pointer;letter-spacing:0.005em}
+.step-pill:hover{border-color:#94a3b8;color:var(--text)}
+.step-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.step-pill.done{background:#fff;color:var(--accent);border-color:var(--accent)}
+.main{max-width:1280px;margin:0 auto;padding:36px 28px 48px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:var(--shadow-sm)}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;letter-spacing:0.015em;text-transform:uppercase}
+.badge-green{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.badge-blue{background:#ecfeff;color:#0e7490;border:1px solid #a5f3fc}
+.badge-orange{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.badge-accent{background:#eef2f7;color:#0f2a4d;border:1px solid #cbd5e1}
+.badge-purple{background:#fff7ed;color:#92400e;border:1px solid #fed7aa}
+.badge-gray{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;border:1px solid transparent;transition:all .15s;letter-spacing:0.005em;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-hover);border-color:var(--accent-hover);box-shadow:0 4px 12px rgba(15,42,77,0.18)}
+.btn-secondary{background:#fff;color:var(--text);border:1px solid var(--border2)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);background:#fafbfd}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2);background:#fafbfd}
+.btn-danger{background:#fff;color:var(--red);border:1px solid #fecaca}
+.btn-danger:hover{background:#fef2f2}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px}
+.mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+.mode-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all .15s;text-align:left;box-shadow:var(--shadow-sm);position:relative}
+.mode-card:hover{border-color:#94a3b8;transform:translateY(-1px);box-shadow:var(--shadow)}
+.mode-card.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset,var(--shadow-md)}
+.mode-card-title{font-weight:700;font-size:14px;margin-bottom:6px;color:var(--text);font-family:'Manrope',sans-serif}
+.mode-card-desc{font-size:12px;color:var(--text2);line-height:1.55}
+.appliance-row{display:grid;grid-template-columns:28px 1fr auto auto auto auto;align-items:center;gap:8px;padding:10px 12px;background:#fff;border:1px solid var(--border);border-radius:8px;transition:border-color .15s}
+.appliance-row:hover{border-color:var(--border2)}
+.upload-zone{border:2px dashed var(--border2);border-radius:12px;padding:44px;text-align:center;cursor:pointer;transition:all .15s;position:relative;background:#fafbfd}
+.upload-zone:hover{border-color:var(--accent);background:#f1f5f9}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.kit-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .15s;box-shadow:var(--shadow-sm)}
+.kit-card.recommended{border-color:var(--accent);border-top:3px solid var(--accent);box-shadow:var(--shadow-md)}
+.kit-card.robust{border-color:var(--accent2);border-top:3px solid var(--accent2);box-shadow:var(--shadow-md)}
+.kit-header{padding:20px 22px;border-bottom:1px solid var(--border);background:#fafbfd}
+.kit-name{font-size:20px;font-weight:800;margin:6px 0 4px;font-family:'Manrope',sans-serif;letter-spacing:-0.015em;color:var(--text)}
+.kit-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:16px 22px}
+.kit-stat{background:#fafbfd;border-radius:8px;padding:13px;border:1px solid var(--border)}
+.kit-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;font-weight:600}
+.kit-stat-value{font-size:17px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--text)}
+.coverage-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:4px}
+.coverage-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.roi-stat{text-align:center;background:#fafbfd;border-radius:10px;padding:16px;border:1px solid var(--border)}
+.roi-value{font-size:22px;font-weight:800;font-family:'Manrope',sans-serif;color:var(--accent);letter-spacing:-0.015em}
+.roi-label{font-size:11px;color:var(--text2);margin-top:4px;letter-spacing:0.01em}
+.bill-block{background:#fafbfd;border-radius:10px;padding:14px;border:1px solid var(--border)}
+.bill-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;font-weight:700}
+.bill-value{font-size:22px;font-weight:700;font-family:'Manrope',sans-serif;color:var(--text);letter-spacing:-0.015em}
+.bill-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.loading-pulse{animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+.glow-text{color:var(--accent3);font-weight:800}
+.tab-bar{display:inline-flex;gap:2px;background:#eef2f8;border-radius:10px;padding:4px;margin-bottom:24px;border:1px solid var(--border)}
+.tab{padding:8px 18px;border-radius:7px;font-size:12px;font-weight:600;color:var(--text2);border:none;background:transparent;transition:all .15s;cursor:pointer;letter-spacing:0.005em}
+.tab:hover{color:var(--text)}
+.tab.active{background:#fff;color:var(--accent);box-shadow:0 1px 3px rgba(15,42,77,0.1)}
+.ai-box{background:#fafbfd;border:1px solid var(--border);border-left:3px solid var(--accent3);border-radius:8px;padding:16px;margin-bottom:20px}
+.fade-in{animation:fadeIn .3s ease forwards}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.appliance-list{display:flex;flex-direction:column;gap:8px;max-height:380px;overflow-y:auto;padding-right:4px}
+.battery-panel{background:#fffbeb;border:1px solid #fde68a;border-left:3px solid var(--accent3);border-radius:10px;padding:16px;margin:0 22px 16px}
+.bom-row{display:grid;grid-template-columns:36px 1fr 100px;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.bom-row:last-child{border-bottom:none}
+.bom-row:nth-child(even){background:#fafbfd}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const { useState, useMemo, useRef } = React;
+
+// ─── SOUND ENGINE (Web Audio API — no necesita archivos ni APIs) ────────────
+const SFX=(()=>{
+  let ctx;
+  const getCtx=()=>{if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();return ctx;};
+  const play=(freq,type,dur,vol=0.08)=>{
+    try{
+      const c=getCtx(),o=c.createOscillator(),g=c.createGain();
+      o.type=type;o.frequency.value=freq;
+      g.gain.setValueAtTime(vol,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+      o.connect(g);g.connect(c.destination);
+      o.start(c.currentTime);o.stop(c.currentTime+dur);
+    }catch(e){}
+  };
+  return{
+    hover:()=>play(1800,'sine',0.06,0.03),
+    click:()=>{play(800,'sine',0.08,0.06);setTimeout(()=>play(1200,'sine',0.06,0.04),50);},
+    success:()=>{play(523,'sine',0.12,0.07);setTimeout(()=>play(659,'sine',0.12,0.07),100);setTimeout(()=>play(784,'sine',0.18,0.07),200);},
+    step:()=>{play(600,'triangle',0.1,0.05);setTimeout(()=>play(900,'triangle',0.08,0.04),60);},
+    scan:()=>{play(440,'sawtooth',0.3,0.02);play(880,'sine',0.4,0.015);},
+    error:()=>{play(300,'square',0.15,0.04);setTimeout(()=>play(220,'square',0.2,0.04),120);},
+    add:()=>{play(1047,'sine',0.08,0.05);setTimeout(()=>play(1319,'sine',0.06,0.04),40);},
+    remove:()=>play(400,'triangle',0.12,0.04),
+  };
+})();
+
+// ─── LOGOS (embedded base64) ─────────────────────────────────────────────────
+const LOGO_RV  = "data:image/png;base64,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";
+const LOGO_TCL = "data:image/png;base64,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";
+
+function LogoRV({h=38}){
+  const [err,setErr]=useState(false);
+  if(err) return(
+    <div style={{display:'flex',alignItems:'center',gap:6}}>
+      <div style={{width:8,height:8,background:'var(--accent)',borderRadius:'50%',boxShadow:'0 0 8px var(--accent)'}}/>
+      <span style={{fontFamily:'Manrope',fontWeight:800,fontSize:18}}>RV <span style={{background:'linear-gradient(135deg,var(--accent),var(--accent2))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Energía</span></span>
+    </div>
+  );
+  return <img src={LOGO_RV} alt="RV Energía" style={{height:h,display:'block'}} onError={()=>setErr(true)}/>;
+}
+function LogoTCL({h=24}){
+  const [err,setErr]=useState(false);
+  if(err) return <span style={{fontSize:11,color:'var(--text3)',fontWeight:500}}>TCL Solar × GoodWe</span>;
+  return <img src={LOGO_TCL} alt="TCL Solar" style={{height:h,display:'block',opacity:.85}} onError={()=>setErr(true)}/>;
+}
+
+// ─── DATA ──────────────────────────────────────────────────────────────────────
+const PROV=[
+  {id:'baires',name:'Buenos Aires',hsp:4.3},{id:'caba',name:'C.A.B.A.',hsp:4.2},
+  {id:'catamarca',name:'Catamarca',hsp:5.9},{id:'chaco',name:'Chaco',hsp:4.9},
+  {id:'chubut',name:'Chubut',hsp:3.9},{id:'cordoba',name:'Córdoba',hsp:4.9},
+  {id:'corrientes',name:'Corrientes',hsp:4.7},{id:'entrerios',name:'Entre Ríos',hsp:4.6},
+  {id:'formosa',name:'Formosa',hsp:4.9},{id:'jujuy',name:'Jujuy',hsp:6.1},
+  {id:'lapampa',name:'La Pampa',hsp:4.7},{id:'larioja',name:'La Rioja',hsp:6.0},
+  {id:'mendoza',name:'Mendoza',hsp:5.6},{id:'misiones',name:'Misiones',hsp:4.5},
+  {id:'neuquen',name:'Neuquén',hsp:4.6},{id:'rionegro',name:'Río Negro',hsp:4.3},
+  {id:'salta',name:'Salta',hsp:5.9},{id:'sanjuan',name:'San Juan',hsp:6.2},
+  {id:'sanluis',name:'San Luis',hsp:5.4},{id:'santacruz',name:'Santa Cruz',hsp:3.3},
+  {id:'santafe',name:'Santa Fe',hsp:4.7},{id:'santiago',name:'Santiago del Estero',hsp:5.4},
+  {id:'tierra',name:'Tierra del Fuego',hsp:2.8},{id:'tucuman',name:'Tucumán',hsp:5.1}
+].sort((a,b)=>a.name.localeCompare(b.name));
+
+const APPS=[
+  {id:'tv43',emoji:'📺',name:'Televisor 43"',W:120,H:6,cat:'entretenimiento'},
+  {id:'tv55',emoji:'📺',name:'TV grande +55"',W:200,H:6,cat:'entretenimiento'},
+  {id:'pc',emoji:'🖥️',name:'PC de escritorio',W:300,H:8,cat:'entretenimiento'},
+  {id:'notebook',emoji:'💻',name:'Notebook / Laptop',W:60,H:8,cat:'entretenimiento'},
+  {id:'router',emoji:'📶',name:'Router / Modem',W:15,H:24,cat:'entretenimiento'},
+  {id:'heladera',emoji:'🧊',name:'Heladera No Frost',W:180,H:24,cat:'electrodomesticos',note:'Ciclo de compresor ~50%'},
+  {id:'freezer',emoji:'🧊',name:'Freezer horizontal',W:250,H:24,cat:'electrodomesticos',note:'Ciclo compresor ~40%'},
+  {id:'lavaropa',emoji:'🫧',name:'Lavaropa',W:500,H:1,cat:'electrodomesticos',note:'Horas=ciclos/día'},
+  {id:'lavavajillas',emoji:'🍽️',name:'Lavavajillas',W:1200,H:1,cat:'electrodomesticos'},
+  {id:'microondas',emoji:'📡',name:'Microondas',W:900,H:0.5,cat:'electrodomesticos'},
+  {id:'secadora',emoji:'🌀',name:'Secadora de ropa',W:2500,H:1,cat:'electrodomesticos'},
+  {id:'airefrio',emoji:'❄️',name:'Aire Acondicionado (frío)',W:1500,H:8,cat:'clima',note:'Split 3000 frigorías'},
+  {id:'airecalor',emoji:'🔥',name:'Aire Acondicionado (calor)',W:2000,H:8,cat:'clima',note:'Split bomba de calor'},
+  {id:'estufa',emoji:'♨️',name:'Estufa eléctrica',W:2000,H:4,cat:'clima'},
+  {id:'calefon',emoji:'🚿',name:'Termotanque eléctrico',W:1500,H:2,cat:'clima'},
+  {id:'luces',emoji:'💡',name:'Iluminación LED (hogar)',W:100,H:8,cat:'iluminacion'},
+  {id:'bomba',emoji:'💧',name:'Bomba de agua',W:750,H:2,cat:'otro'},
+  {id:'pileta',emoji:'🏊',name:'Bomba de pileta',W:1000,H:6,cat:'otro'},
+  {id:'ducha',emoji:'🚿',name:'Ducha eléctrica',W:5000,H:0.5,cat:'otro'},
+  {id:'ev',emoji:'🚗',name:'Cargador auto eléctrico',W:7000,H:6,cat:'otro'},
+];
+
+const BAT_MONO=999, BAT_TRI=1159, BAT_KWH=5;
+
+const KITS=[
+  {id:'EC-3K',name:'Economy 3kW',type:'ongrid',ph:'mono',inv:'GoodWe GW3000-XS-30',panels:6,Wp:3510,bat:0,batModel:null,price:1099,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+  {id:'EC-5K',name:'Economy Plus 5kW',type:'ongrid',ph:'mono',inv:'GoodWe GW5000-MS-30',panels:10,Wp:5850,bat:0,batModel:null,price:1999,str:{chapa:'C-5U',teja:'T-5U',suelo:'SL-5U'}},
+  {id:'EC-6K',name:'Economy Pro 6kW',type:'ongrid',ph:'mono',inv:'GoodWe GW6000-MS-30',panels:12,Wp:7020,bat:0,batModel:null,price:2299,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+  {id:'ACR-3K',name:'Always Connected 3kW',type:'hybrid',ph:'mono',inv:'GoodWe GW3000-ES-20',panels:6,Wp:3510,bat:5,batModel:'Lynx U 5kWh LV',price:3199,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+  {id:'ACR-5K',name:'Always Connected 5kW',type:'hybrid',ph:'mono',inv:'GoodWe GW5000-ES-20',panels:12,Wp:7020,bat:5,batModel:'Lynx U 5kWh LV',price:4399,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+  {id:'ECT-8K',name:'Economy T 8kW',type:'ongrid',ph:'tri',inv:'GoodWe GW8000-SDT-30',panels:16,Wp:9360,bat:0,batModel:null,price:3380,str:{chapa:'C-8U',teja:'T-8U',suelo:'SL-8U'}},
+  {id:'ECT-12K',name:'Economy T Plus 12kW',type:'ongrid',ph:'tri',inv:'GoodWe GW12K-SDT-30',panels:24,Wp:14040,bat:0,batModel:null,price:4599,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+  {id:'ECT-20K',name:'Economy T Pro 20kW',type:'ongrid',ph:'tri',inv:'GoodWe GW20K-SDT-30',panels:40,Wp:23400,bat:0,batModel:null,price:6399,str:{chapa:'C-8U',teja:'T-8U',suelo:'SL-8U'}},
+  {id:'PS-8K',name:'Power Station 8kW',type:'hybrid',ph:'tri',inv:'GoodWe GW8000-ET-20',panels:16,Wp:9360,bat:5,batModel:'Lynx D 5kWh HV',price:6299,str:{chapa:'C-8U',teja:'T-8U',suelo:'SL-8U'}},
+  {id:'PS-10K',name:'Power Station Plus 10kW',type:'hybrid',ph:'tri',inv:'GoodWe GW10K-ET-20',panels:18,Wp:10530,bat:5,batModel:'Lynx D 5kWh HV',price:6899,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+  {id:'PS-12K',name:'Power Station Pro 12kW',type:'hybrid',ph:'tri',inv:'GoodWe GW12K-ET-20',panels:24,Wp:14040,bat:10,batModel:'2× Lynx D 5kWh HV',price:9099,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+  {id:'PS-15K',name:'Power Station Mega 15kW',type:'hybrid',ph:'tri',inv:'GoodWe GW15K-ET-20',panels:32,Wp:18720,bat:10,batModel:'2× Lynx D 5kWh HV',price:10499,str:{chapa:'C-8U',teja:'T-8U',suelo:'SL-8U'}},
+  {id:'RUR-3K',name:'Rural 3kW',type:'offgrid',ph:'mono',inv:'GoodWe GW3000-ES-20',panels:6,Wp:3510,bat:5,batModel:'Lynx U 5kWh LV',price:3199,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+  {id:'RUR-5K',name:'Rural 5kW',type:'offgrid',ph:'mono',inv:'GoodWe GW5000-ES-20',panels:12,Wp:7020,bat:5,batModel:'Lynx U 5kWh LV',price:4399,str:{chapa:'C-6U',teja:'T-6U',suelo:'SL-6U'}},
+];
+
+const EFF={chapa:.9,teja:.98,suelo:1};
+const SE=.85;
+
+function gen(Wp,hsp,roof){return Math.round((Wp/1000)*hsp*30*SE*(EFF[roof]||1));}
+// Autonomía: consumo continuo a plena carga (peor caso), DOD 90%
+function autoHours(batKwh,kwhMes){
+  if(!batKwh||!kwhMes) return null;
+  return (batKwh*.9)/((kwhMes/30)/24);
+}
+function fmtAuto(h){
+  if(!h) return null;
+  return h>=24?`${(h/24).toFixed(1)} días`:`${h.toFixed(1)} horas`;
+}
+function fmt(n,d=0){return Number(n).toLocaleString('es-AR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmtUSD(n){return `USD ${fmt(n)}`;}
+
+function pickKits(kwhMes,mode,ph,roof,hsp){
+  const daily=kwhMes/30;
+  const mult=mode==='offgrid'?1.35:1;
+  const need=(daily*mult)/(hsp*SE*(EFF[roof]||1));
+  const pool=KITS.filter(k=>{
+    if(mode==='ongrid') return k.type==='ongrid'&&k.ph===ph;
+    if(mode==='hybrid') return k.type==='hybrid'&&k.ph===ph;
+    if(mode==='offgrid') return k.type==='offgrid';
+    return false;
+  }).sort((a,b)=>a.Wp-b.Wp);
+  let i=pool.findIndex(k=>(k.Wp/1000)>=need);
+  if(i===-1) i=pool.length-1;
+  return {opt:pool[i]||null,rob:pool[i+1]||null};
+}
+
+// ─── ICONS ─────────────────────────────────────────────────────────────────────
+const IC={
+  check:()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  plus:()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  minus:()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  trash:()=><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>,
+  upload:()=><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+  sun:()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>,
+  bat:()=><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/></svg>,
+  edit:()=><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  spark:()=><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l2.4 7.4L22 12l-7.6 2.6L12 22l-2.4-7.4L2 12l7.6-2.6z"/></svg>,
+  file:()=><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,
+  x:()=><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  arr:()=><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+};
+
+// ─── BILL READER PROMPT ─────────────────────────────────────────────────────────
+const BILL_PROMPT=`Sos un experto en facturas eléctricas argentinas. Tu tarea es extraer datos de esta factura de luz.
+
+PASO 1 — IDENTIFICAR DATOS BÁSICOS:
+- Empresa distribuidora (Edenor, Edesur, EPEC, EPE, EDELAP, EDEA, EDEN, EDES, cooperativas, etc.)
+- Tarifa/tipo de usuario (T1-R, T1-R2, T1-G, T2, T3, Residencial, etc.)
+- Período facturado (fechas desde/hasta)
+
+PASO 2 — EXTRAER CONSUMO ACTUAL:
+Buscá la sección "Consumo eléctrico" o "Total Consumo". Ejemplo: "Total Consumo 379 kWh en 29 días".
+Si no aparece directamente, buscá lecturas del medidor: Lectura actual - Lectura anterior = consumo en kWh.
+También buscá "kWh facturados", "Energía activa", "Consumo registrado".
+
+PASO 3 — EXTRAER HISTORIAL DE CONSUMO:
+Muchas facturas argentinas incluyen un gráfico de barras o tabla con "Evolución anual de su consumo" o "Consumo histórico" mostrando kWh/día de los últimos meses con etiquetas como 25/05, 25/06, etc.
+Los valores del gráfico suelen estar en kWh/día (promedio diario de cada período).
+Extraé TODOS los valores históricos que puedas leer, incluyendo el período actual.
+Si los valores están en kWh/día, multiplicá por 30 para estimar el mensual.
+
+PASO 4 — IMPORTE:
+Buscá "Total a pagar", "TOTAL A PAGAR" o similar. Es el monto en pesos argentinos.
+
+PASO 5 — DESGLOSE HORARIO:
+Solo si la factura muestra EXPLÍCITAMENTE consumo separado en "pico", "valle" y "resto" (o "fuera de pico").
+Las tarifas T1 residenciales normalmente NO tienen desglose horario.
+
+Devolvé ÚNICAMENTE un JSON puro. Sin markdown, sin backticks, sin texto antes ni después:
+{
+  "empresa": "nombre de la distribuidora",
+  "tipoUsuario": "tarifa tal como aparece (ej: T1-R2 Residencial)",
+  "periodo": "mes/año (ej: Febrero-Marzo 2026)",
+  "tieneDesglosoHorario": false,
+  "totalKwh": 379,
+  "picoKwh": null,
+  "valleKwh": null,
+  "restoKwh": null,
+  "potenciaContratadaKw": null,
+  "importeTotal": 41881.77,
+  "diasPeriodo": 29,
+  "promedioDiarioKwh": 13.07,
+  "historial": [
+    {"periodo": "May 2025", "kwhDia": 6, "kwhMes": 180},
+    {"periodo": "Jun 2025", "kwhDia": 6, "kwhMes": 180},
+    {"periodo": "Jul 2025", "kwhDia": 7, "kwhMes": 210}
+  ],
+  "consumoMaxKwhMes": 690,
+  "consumoPromedioKwhMes": 350,
+  "observaciones": "notas breves"
+}
+
+REGLAS CLAVE:
+- totalKwh: número ENTERO de kWh del período actual. DEBE ser mayor a 0.
+- historial: array con cada período visible en el gráfico/tabla de evolución. kwhDia es el valor del gráfico, kwhMes es kwhDia × 30.
+- consumoMaxKwhMes: el mayor kwhMes del historial (para dimensionar por pico).
+- consumoPromedioKwhMes: promedio de todos los kwhMes del historial.
+- Si tieneDesglosoHorario es false, picoKwh/valleKwh/restoKwh DEBEN ser null.
+- promedioDiarioKwh = totalKwh / diasPeriodo.
+- Si no podés leer algún dato, poné null o 0 y explicá en observaciones.
+
+SOLO devolvé el JSON.`;
+
+// ─── APP ────────────────────────────────────────────────────────────────────────
+function App(){
+  const [step,setStep]=useState(0);
+  const [mode,setMode]=useState(null); // appliances | bill | manual
+  const [apps,setApps]=useState([]);
+  const [editId,setEditId]=useState(null);
+  const [billFile,setBillFile]=useState(null);
+  const [billImg,setBillImg]=useState(null);
+  const [billData,setBillData]=useState(null);
+  const [billLoad,setBillLoad]=useState(false);
+  const [billErr,setBillErr]=useState(null);
+  const [billStrategy,setBillStrategy]=useState('max'); // 'max' | 'avg' | 'current'
+  const [manual,setManual]=useState(400);
+  const [sysMode,setSysMode]=useState('ongrid');
+  const [phase,setPhase]=useState('mono');
+  const [roof,setRoof]=useState('chapa');
+  const [zone,setZone]=useState('baires');
+  const [factura,setFactura]=useState('');
+  const [usd,setUsd]=useState(1150);
+
+  const zoneObj=PROV.find(z=>z.id===zone)||PROV[0];
+
+  const kwhMes=useMemo(()=>{
+    if(mode==='manual') return manual;
+    if(mode==='bill'&&billData){
+      if(billStrategy==='max'&&billData.consumoMaxKwhMes>0) return billData.consumoMaxKwhMes;
+      if(billStrategy==='avg'&&billData.consumoPromedioKwhMes>0) return billData.consumoPromedioKwhMes;
+      return billData.totalKwh||0;
+    }
+    if(mode==='bill'&&billErr&&manual>0) return manual;
+    if(mode==='appliances') return apps.reduce((s,a)=>s+(a.W*a.H*30*a.qty)/1000,0);
+    return 0;
+  },[mode,manual,billData,billErr,billStrategy,apps]);
+
+  const {opt,rob}=useMemo(()=>{
+    if(kwhMes<=0) return {opt:null,rob:null};
+    return pickKits(kwhMes,sysMode,phase,roof,zoneObj.hsp);
+  },[kwhMes,sysMode,phase,roof,zoneObj]);
+
+  const addApp=db=>{
+    const ex=apps.find(a=>a.dbId===db.id);
+    if(ex) setApps(prev=>prev.map(a=>a.dbId===db.id?{...a,qty:a.qty+1}:a));
+    else setApps(prev=>[...prev,{id:Date.now(),dbId:db.id,emoji:db.emoji,name:db.name,W:db.W,H:db.H,qty:1}]);
+  };
+  const updApp=(id,f,v)=>setApps(prev=>prev.map(a=>a.id===id?{...a,[f]:parseFloat(v)||0}:a));
+  const delApp=id=>setApps(prev=>prev.filter(a=>a.id!==id));
+
+  const toB64=f=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f);});
+
+  const analyzeBill=async f=>{
+    setBillLoad(true);setBillErr(null);setBillData(null);
+    try{
+      const b64=await toB64(f);
+      const mime=f.type||(f.name.toLowerCase().endsWith('.pdf')?'application/pdf':'image/jpeg');
+      const isPdf=mime==='application/pdf';
+
+      const buildContent=(prompt)=>{
+        if(isPdf) return [{type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},{type:'text',text:prompt}];
+        return [{type:'image',source:{type:'base64',media_type:mime,data:b64}},{type:'text',text:prompt}];
+      };
+
+      const callAPI=async (prompt)=>{
+        const r=await fetch('/api/analyze',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:buildContent(prompt)}]})
+        });
+        if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||`Error ${r.status}`);}
+        return r.json();
+      };
+
+      const parseResponse=(data)=>{
+        const raw=(data.content||[]).map(c=>c.text||'').join('').trim();
+        let clean=raw.replace(/```(?:json)?\s*/gi,'').replace(/\s*```/g,'').trim();
+        const i=clean.indexOf('{');
+        const j=clean.lastIndexOf('}');
+        if(i===-1||j===-1) throw new Error('No se encontró JSON en la respuesta');
+        clean=clean.substring(i,j+1);
+        clean=clean.replace(/,\s*([}\]])/g,'$1');
+        return JSON.parse(clean);
+      };
+
+      // Intento 1: prompt completo
+      let parsed;
+      try{
+        const data=await callAPI(BILL_PROMPT);
+        parsed=parseResponse(data);
+      }catch(e1){
+        // Intento 2: prompt simplificado
+        const fallback=`Extraé de esta factura eléctrica argentina estos datos. Devolvé SOLO un JSON puro sin markdown:
+{"empresa":"","tipoUsuario":"","periodo":"","tieneDesglosoHorario":false,"totalKwh":0,"importeTotal":0,"diasPeriodo":30,"promedioDiarioKwh":0,"historial":[],"consumoMaxKwhMes":0,"consumoPromedioKwhMes":0,"observaciones":""}
+Buscá "Total Consumo X kWh" o lecturas del medidor. El importe es "Total a pagar".`;
+        try{
+          const data2=await callAPI(fallback);
+          parsed=parseResponse(data2);
+        }catch(e2){
+          throw new Error(`No se pudo procesar después de 2 intentos. ${e1.message}`);
+        }
+      }
+
+      // Validación
+      if(!parsed.totalKwh||parsed.totalKwh<=0){
+        SFX.error();setBillErr(`La IA no pudo extraer los kWh. ${parsed.observaciones||''} Ingresá el consumo manualmente abajo.`);
+        return;
+      }
+
+      // Sanitizar campos
+      if(!parsed.diasPeriodo||parsed.diasPeriodo<=0) parsed.diasPeriodo=30;
+      parsed.promedioDiarioKwh=parsed.totalKwh/parsed.diasPeriodo;
+      if(!parsed.tieneDesglosoHorario){parsed.picoKwh=null;parsed.valleKwh=null;parsed.restoKwh=null;}
+
+      // Sanitizar historial
+      if(!Array.isArray(parsed.historial)) parsed.historial=[];
+      parsed.historial=parsed.historial.filter(h=>h&&(h.kwhMes>0||h.kwhDia>0)).map(h=>({
+        ...h,
+        kwhMes:h.kwhMes||(h.kwhDia?Math.round(h.kwhDia*30):0),
+        kwhDia:h.kwhDia||(h.kwhMes?Math.round(h.kwhMes/30):0)
+      }));
+
+      // Calcular max y promedio
+      if(parsed.historial.length>0){
+        const ms=parsed.historial.map(h=>h.kwhMes);
+        if(!parsed.consumoMaxKwhMes||parsed.consumoMaxKwhMes<=0) parsed.consumoMaxKwhMes=Math.max(...ms);
+        if(!parsed.consumoPromedioKwhMes||parsed.consumoPromedioKwhMes<=0) parsed.consumoPromedioKwhMes=Math.round(ms.reduce((a,b)=>a+b,0)/ms.length);
+      } else {
+        if(!parsed.consumoMaxKwhMes) parsed.consumoMaxKwhMes=parsed.totalKwh;
+        if(!parsed.consumoPromedioKwhMes) parsed.consumoPromedioKwhMes=parsed.totalKwh;
+      }
+
+      setBillData(parsed);SFX.success();
+      if(parsed.importeTotal) setFactura(String(parsed.importeTotal));
+    }catch(e){
+      SFX.error();setBillErr(`Error al leer la factura: ${e.message}. Podés ingresar el consumo en kWh manualmente abajo.`);
+    }finally{setBillLoad(false);}
+  };
+
+  const onFile=e=>{
+    const f=e.target.files[0];if(!f)return;
+    setBillFile(f);
+    setBillImg(f.type.startsWith('image/')?URL.createObjectURL(f):null);
+    SFX.scan();analyzeBill(f);
+  };
+
+  const canGo=mode&&(
+    (mode==='appliances'&&apps.length>0)||
+    (mode==='bill'&&(billData||billErr))||
+    (mode==='manual'&&manual>0)
+  );
+
+  if(step===2) return <Results
+    opt={opt} rob={rob} kwhMes={kwhMes} sysMode={sysMode}
+    phase={phase} roof={roof} zone={zoneObj}
+    billData={billData} factura={factura} setFactura={setFactura}
+    usd={usd} setUsd={setUsd} onBack={()=>setStep(1)}/>;
+
+  return(
+    <div style={{minHeight:'100vh'}}>
+      {/* NAV */}
+      <div className="nav">
+        <LogoRV h={38}/>
+        <div className="nav-steps">
+          {['Consumo','Configuración','Resultado'].map((s,i)=>(
+            <div key={i} className={`step-pill ${step===i?'active':step>i?'done':''}`}
+              onClick={()=>{if(step>i)setStep(i);}}>{i+1}. {s}</div>
+          ))}
+        </div>
+        <LogoTCL h={24}/>
+      </div>
+
+      <div className="main">
+        {/* ─── STEP 0 ─── */}
+        {step===0&&(
+          <div className="fade-in">
+            <div style={{textAlign:'center',marginBottom:32}}>
+              <div style={{display:'inline-flex',alignItems:'center',gap:8,background:'rgba(15,42,77,0.08)',border:'1px solid rgba(15,42,77,0.2)',borderRadius:20,padding:'6px 16px',marginBottom:16,fontSize:12,color:'var(--accent)',fontWeight:600}}>
+                <IC.spark/> Dimensionador con IA · Kits hasta 15kW · TCL Solar × GoodWe
+              </div>
+              <h1 style={{fontSize:34,fontWeight:800,lineHeight:1.2,marginBottom:10}}>
+                ¿Cuánta energía<br/><span className="glow-text">necesitás generar?</span>
+              </h1>
+              <p style={{color:'var(--text2)',fontSize:14,maxWidth:500,margin:'0 auto'}}>Elegí cómo querés ingresar tu consumo eléctrico.</p>
+            </div>
+
+            <div className="mode-grid" style={{maxWidth:860,margin:'0 auto 28px'}}>
+              {[
+                {v:'appliances',icon:'🏠',title:'Por electrodomésticos',desc:'Indicá qué aparatos tenés y cuántas horas los usás. La IA estima los kWh automáticamente. Podés editar cada valor.'},
+                {v:'bill',icon:'📄',title:'Subir factura de luz',desc:'Cargá tu factura en PDF o foto. La IA detecta el tipo de tarifa: si es residencial simple extrae el total; si tiene desglose horario también muestra pico/valle/resto.'},
+                {v:'manual',icon:'⚡',title:'Ingreso manual (kWh)',desc:'Si ya sabés tu consumo mensual en kWh, ingresalo directamente.'},
+              ].map(o=>(
+                <div key={o.v} className={`mode-card ${mode===o.v?"active":""}`} onMouseEnter={SFX.hover} onClick={()=>{SFX.click();setMode(o.v);}}>
+                  <div style={{fontSize:24,marginBottom:8}}>{o.icon}</div>
+                  <div className="mode-card-title">{o.title}</div>
+                  <div className="mode-card-desc">{o.desc}</div>
+                  {mode===o.v&&<div style={{marginTop:10}}><span className="badge badge-accent"><IC.check/> Seleccionado</span></div>}
+                </div>
+              ))}
+            </div>
+
+            {/* APPLIANCES */}
+            {mode==='appliances'&&(
+              <div style={{maxWidth:1060,margin:'0 auto'}} className="fade-in">
+                <div className="grid-2" style={{gap:20}}>
+                  {/* Catalog */}
+                  <div className="card">
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Catálogo de equipos</div>
+                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:14}}>Hacé clic para agregar · podés editar watts y horas</div>
+                    {['entretenimiento','electrodomesticos','clima','iluminacion','otro'].map(cat=>(
+                      <div key={cat} style={{marginBottom:14}}>
+                        <div style={{fontSize:10,textTransform:'uppercase',letterSpacing:'0.06em',color:'var(--text3)',fontWeight:600,marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                          <div style={{height:1,flex:1,background:'var(--border)'}}/>
+                          {cat}
+                          <div style={{height:1,flex:1,background:'var(--border)'}}/>
+                        </div>
+                        <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                          {APPS.filter(a=>a.cat===cat).map(a=>(
+                            <button key={a.id} onClick={()=>{SFX.add();addApp(a);}} className="btn btn-secondary btn-sm" style={{gap:4,fontSize:12}} title={a.note||''}>
+                              {a.emoji} {a.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* List */}
+                  <div className="card" style={{display:'flex',flexDirection:'column'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600}}>Tu instalación</div>
+                        <div style={{fontSize:12,color:'var(--text2)'}}>{apps.length} equipo{apps.length!==1?'s':''}</div>
+                      </div>
+                      {apps.length>0&&<button className="btn btn-ghost btn-sm" onClick={()=>setApps([])}>Limpiar</button>}
+                    </div>
+                    {apps.length===0?(
+                      <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'var(--text3)',gap:10,padding:'40px 0',textAlign:'center'}}>
+                        <div style={{fontSize:36}}>🔌</div>
+                        <div style={{fontSize:13}}>Agregá equipos del catálogo</div>
+                      </div>
+                    ):(
+                      <div className="appliance-list">
+                        {apps.map(a=>{
+                          const kwh=(a.W*a.H*30*a.qty)/1000;
+                          return(
+                            <div key={a.id} className="appliance-row">
+                              <div style={{fontSize:17,textAlign:'center'}}>{a.emoji}</div>
+                              <div>
+                                <div style={{fontSize:13,fontWeight:500}}>{a.name}</div>
+                                <div style={{fontSize:11,color:'var(--text2)'}}>{a.W}W × {a.H}h/día × {a.qty}</div>
+                              </div>
+                              <div style={{display:'flex',alignItems:'center',gap:3}}>
+                                <button onClick={()=>updApp(a.id,'qty',Math.max(1,a.qty-1))} style={{width:20,height:20,borderRadius:4,border:'1px solid var(--border2)',background:'var(--card)',color:'var(--text)',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}><IC.minus/></button>
+                                <span style={{fontSize:13,fontWeight:700,minWidth:16,textAlign:'center'}}>{a.qty}</span>
+                                <button onClick={()=>updApp(a.id,'qty',a.qty+1)} style={{width:20,height:20,borderRadius:4,border:'1px solid var(--border2)',background:'var(--card)',color:'var(--text)',fontSize:14,display:'flex',alignItems:'center',justifyContent:'center'}}><IC.plus/></button>
+                              </div>
+                              {editId===a.id?(
+                                <div style={{display:'flex',gap:4}}>
+                                  <div><div style={{fontSize:9,color:'var(--text3)',marginBottom:2}}>Watts</div><input type="number" value={a.W} onChange={e=>updApp(a.id,'W',e.target.value)} style={{width:68,textAlign:'center'}}/></div>
+                                  <div><div style={{fontSize:9,color:'var(--text3)',marginBottom:2}}>Horas/día</div><input type="number" value={a.H} onChange={e=>updApp(a.id,'H',e.target.value)} style={{width:62,textAlign:'center'}}/></div>
+                                </div>
+                              ):(
+                                <button className="btn btn-ghost btn-sm" style={{padding:'5px 8px'}} onClick={()=>setEditId(editId===a.id?null:a.id)}><IC.edit/></button>
+                              )}
+                              <div style={{fontSize:13,fontWeight:600,color:'var(--accent)',minWidth:56,textAlign:'right'}}>{fmt(kwh,0)} kWh</div>
+                              <button className="btn btn-danger btn-sm" style={{padding:'5px 8px'}} onClick={()=>{SFX.remove();delApp(a.id);}}><IC.trash/></button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {apps.length>0&&(
+                      <div style={{marginTop:14,padding:'12px 14px',background:'rgba(15,42,77,0.06)',border:'1px solid rgba(15,42,77,0.15)',borderRadius:10}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                          <span style={{fontSize:13,fontWeight:600}}>Total estimado</span>
+                          <span style={{fontSize:22,fontWeight:800,color:'var(--accent)',fontFamily:'Manrope'}}>{fmt(kwhMes,0)} <span style={{fontSize:12,color:'var(--text2)',fontWeight:400}}>kWh/mes</span></span>
+                        </div>
+                        <div style={{fontSize:11,color:'var(--text2)',marginTop:4}}>≈ {fmt(kwhMes/30,1)} kWh/día promedio</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* BILL */}
+            {mode==='bill'&&(
+              <div style={{maxWidth:780,margin:'0 auto'}} className="fade-in">
+                <div className="card">
+                  <div style={{marginBottom:18}}>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Factura de luz</div>
+                    <div style={{fontSize:12,color:'var(--text2)',lineHeight:1.6}}>
+                      Subí tu factura en <strong>PDF o imagen (JPG/PNG)</strong>. La IA analiza cualquier distribuidora argentina y cualquier tipo de usuario. Si tu tarifa tiene desglose horario (pico/valle/resto), lo detecta automáticamente. Si es tarifa residencial simple, extrae el consumo total.
+                    </div>
+                  </div>
+                  {!billFile?(
+                    <div className="upload-zone">
+                      <input type="file" accept="image/*,.pdf" onChange={onFile}/>
+                      <div style={{pointerEvents:'none',display:'flex',flexDirection:'column',alignItems:'center',gap:10}}>
+                        <div style={{color:'var(--accent)'}}><IC.upload/></div>
+                        <div style={{fontSize:14,fontWeight:600}}>Arrastrá o hacé clic para subir</div>
+                        <div style={{fontSize:12,color:'var(--text2)'}}>PDF · JPG · PNG — hasta 10 MB</div>
+                      </div>
+                    </div>
+                  ):(
+                    <div>
+                      <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,background:'var(--card2)',borderRadius:10,padding:'10px 14px',border:'1px solid var(--border2)'}}>
+                        {billImg
+                          ?<img src={billImg} alt="" style={{width:46,height:46,objectFit:'cover',borderRadius:6,border:'1px solid var(--border2)'}}/>
+                          :<div style={{color:'var(--accent2)'}}><IC.file/></div>}
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:13,fontWeight:500}}>{billFile.name}</div>
+                          <div style={{fontSize:11,color:'var(--text2)'}}>{(billFile.size/1024).toFixed(0)} KB</div>
+                        </div>
+                        <button className="btn btn-ghost btn-sm" onClick={()=>{setBillFile(null);setBillData(null);setBillErr(null);setBillImg(null);}}>
+                          <IC.x/> Cambiar
+                        </button>
+                      </div>
+                      {billLoad&&(
+                        <div style={{textAlign:'center',padding:'28px 0'}}>
+                          <div style={{position:'relative',width:120,height:160,margin:'0 auto 16px',background:'var(--card2)',borderRadius:8,border:'1px solid var(--border2)',overflow:'hidden',boxShadow:'0 4px 24px rgba(0,0,0,0.3)'}}>
+                            {[0,1,2,3,4,5,6,7].map(i=>(<div key={i} style={{position:'absolute',left:16,right:16,top:24+i*16,height:2,background:'var(--border2)',borderRadius:1,opacity:0.5}}/>))}
+                            <div style={{position:'absolute',left:0,right:0,height:2,background:'linear-gradient(90deg,transparent,#d97706,#0f2a4d,#d97706,transparent)',boxShadow:'0 0 8px rgba(217,119,6,0.5)',animation:'scanLine 1.8s ease-in-out infinite'}}/>
+                            <div style={{position:'absolute',left:0,right:0,height:20,background:'linear-gradient(180deg,rgba(15,42,77,0.08),transparent)',animation:'scanGlow 1.8s ease-in-out infinite'}}/>
+                            <div style={{position:'absolute',top:6,left:6,width:12,height:12,borderTop:'2px solid var(--accent)',borderLeft:'2px solid var(--accent)',opacity:0.6}}/>
+                            <div style={{position:'absolute',top:6,right:6,width:12,height:12,borderTop:'2px solid var(--accent)',borderRight:'2px solid var(--accent)',opacity:0.6}}/>
+                            <div style={{position:'absolute',bottom:6,left:6,width:12,height:12,borderBottom:'2px solid var(--accent)',borderLeft:'2px solid var(--accent)',opacity:0.6}}/>
+                            <div style={{position:'absolute',bottom:6,right:6,width:12,height:12,borderBottom:'2px solid var(--accent)',borderRight:'2px solid var(--accent)',opacity:0.6}}/>
+                          </div>
+                          <style>{`@keyframes scanLine{0%{top:20px}50%{top:140px}100%{top:20px}}@keyframes scanGlow{0%{top:20px}50%{top:140px}100%{top:20px}}`}</style>
+                          <div style={{fontSize:13,fontWeight:600,color:'var(--accent)'}}>La IA está analizando tu factura...</div>
+                          <div style={{fontSize:12,color:'var(--text2)',marginTop:4}}>Identificando distribuidora, tipo de tarifa y consumo</div>
+                        </div>
+                      )}
+                      {billErr&&(
+                        <div style={{background:'rgba(255,68,68,0.06)',border:'1px solid rgba(255,68,68,0.2)',borderRadius:10,padding:14,marginBottom:16}}>
+                          <div style={{fontSize:12,color:'var(--red)',marginBottom:10}}>{billErr}</div>
+                          <div style={{fontSize:12,fontWeight:600,marginBottom:8,color:'var(--text2)'}}>Ingresá manualmente el consumo mensual:</div>
+                          <div style={{display:'flex',alignItems:'center',gap:10}}>
+                            <input type="number" value={manual} onChange={e=>setManual(Number(e.target.value))} style={{width:130}} placeholder="kWh/mes"/>
+                            <span style={{fontSize:12,color:'var(--text2)'}}>kWh/mes</span>
+                          </div>
+                        </div>
+                      )}
+                      {billData&&(
+                        <div style={{background:'var(--card2)',border:'1px solid var(--border2)',borderRadius:12,padding:14,marginTop:4}} className="fade-in">
+                          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
+                            <span className="badge badge-accent"><IC.spark/> Lectura completada</span>
+                            {billData.empresa&&<span style={{fontSize:12,color:'var(--text)',fontWeight:600}}>{billData.empresa}</span>}
+                            {billData.tipoUsuario&&<span className="badge badge-orange">{billData.tipoUsuario}</span>}
+                            {billData.periodo&&<span className="badge badge-blue">{billData.periodo}</span>}
+                            {billData.tieneDesglosoHorario
+                              ?<span className="badge badge-purple">⏱ Con desglose horario</span>
+                              :<span className="badge badge-gray">Sin desglose horario</span>}
+                          </div>
+                          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:10}}>
+                            <div className="bill-block" style={{border:'1px solid rgba(15,42,77,0.25)'}}>
+                              <div className="bill-label">Consumo actual</div>
+                              <div className="bill-value" style={{color:'var(--accent)',fontSize:26}}>{billData.totalKwh}</div>
+                              <div className="bill-sub">kWh · {billData.diasPeriodo||30} días · {fmt(billData.promedioDiarioKwh||billData.totalKwh/30,1)} kWh/día</div>
+                            </div>
+                            {billData.tieneDesglosoHorario&&billData.picoKwh&&(
+                              <div className="bill-block"><div className="bill-label">🌞 Pico</div><div className="bill-value" style={{color:'var(--red)'}}>{billData.picoKwh}</div><div className="bill-sub">kWh · {fmt(billData.picoKwh/billData.totalKwh*100,0)}%</div></div>
+                            )}
+                            {billData.tieneDesglosoHorario&&billData.valleKwh&&(
+                              <div className="bill-block"><div className="bill-label">🌙 Valle</div><div className="bill-value" style={{color:'var(--accent2)'}}>{billData.valleKwh}</div><div className="bill-sub">kWh · {fmt(billData.valleKwh/billData.totalKwh*100,0)}%</div></div>
+                            )}
+                            {billData.tieneDesglosoHorario&&billData.restoKwh&&(
+                              <div className="bill-block"><div className="bill-label">🌤️ Resto</div><div className="bill-value" style={{color:'var(--yellow)'}}>{billData.restoKwh}</div><div className="bill-sub">kWh · {fmt(billData.restoKwh/billData.totalKwh*100,0)}%</div></div>
+                            )}
+                            {!billData.tieneDesglosoHorario&&(
+                              <div className="bill-block" style={{gridColumn:billData.importeTotal?'span 1':'span 2'}}>
+                                <div className="bill-label">Tipo de medición</div>
+                                <div style={{fontSize:12,color:'var(--text2)',marginTop:4,lineHeight:1.5}}>Tarifa <strong style={{color:'var(--text)'}}>sin segmentación horaria</strong>.</div>
+                              </div>
+                            )}
+                            {billData.importeTotal>0&&<div className="bill-block"><div className="bill-label">💵 Importe</div><div className="bill-value" style={{color:'var(--accent3)'}}>$ {fmt(billData.importeTotal,0)}</div><div className="bill-sub">ARS</div></div>}
+                            {billData.potenciaContratadaKw&&<div className="bill-block"><div className="bill-label">⚡ Potencia</div><div className="bill-value">{billData.potenciaContratadaKw} kW</div></div>}
+                          </div>
+
+                          {/* HISTORIAL */}
+                          {billData.historial&&billData.historial.length>1&&(
+                            <div style={{marginTop:12,background:'var(--card)',borderRadius:10,padding:12,border:'1px solid var(--border)'}}>
+                              <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.04em',marginBottom:10}}>📊 Historial de consumo</div>
+                              <div style={{display:'flex',alignItems:'flex-end',gap:4,height:80,marginBottom:8}}>
+                                {billData.historial.map((h,i)=>{
+                                  const maxH=Math.max(...billData.historial.map(x=>x.kwhMes));
+                                  const pct=maxH>0?(h.kwhMes/maxH)*100:0;
+                                  const isMax=h.kwhMes===billData.consumoMaxKwhMes;
+                                  return(
+                                    <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
+                                      <div style={{fontSize:9,fontWeight:600,color:isMax?'var(--red)':'var(--accent)'}}>{h.kwhMes}</div>
+                                      <div style={{width:'100%',maxWidth:32,height:`${Math.max(pct,5)}%`,background:isMax?'var(--red)':'var(--accent)',borderRadius:'3px 3px 0 0',opacity:0.7,transition:'height .3s'}}/>
+                                      <div style={{fontSize:8,color:'var(--text3)',textAlign:'center',lineHeight:1.2}}>{h.periodo}</div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div style={{display:'flex',gap:12,fontSize:11,color:'var(--text2)',justifyContent:'center',flexWrap:'wrap'}}>
+                                <span>Máximo: <strong style={{color:'var(--red)'}}>{billData.consumoMaxKwhMes} kWh/mes</strong></span>
+                                <span>Promedio: <strong style={{color:'var(--accent)'}}>{billData.consumoPromedioKwhMes} kWh/mes</strong></span>
+                                <span>Actual: <strong style={{color:'var(--text)'}}>{billData.totalKwh} kWh/mes</strong></span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* ESTRATEGIA DE DIMENSIONAMIENTO */}
+                          {billData.historial&&billData.historial.length>1&&(
+                            <div style={{marginTop:12,background:'rgba(15,42,77,0.06)',border:'1px solid rgba(15,42,77,0.15)',borderRadius:10,padding:12}}>
+                              <div style={{fontSize:11,fontWeight:600,color:'var(--accent)',marginBottom:8}}>⚡ ¿Cómo querés dimensionar el sistema?</div>
+                              <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                                {[
+                                  {v:'max',l:`Consumo máximo (${billData.consumoMaxKwhMes} kWh)`,d:'Cubre el mes de mayor consumo. Excedentes en meses bajos se inyectan a la red o almacenan.'},
+                                  {v:'avg',l:`Promedio anual (${billData.consumoPromedioKwhMes} kWh)`,d:'Equilibra generación y consumo durante el año.'},
+                                  {v:'current',l:`Período actual (${billData.totalKwh} kWh)`,d:'Solo cubre el consumo del último período facturado.'}
+                                ].map(o=>(
+                                  <button key={o.v} onClick={()=>setBillStrategy(o.v)} style={{flex:1,minWidth:140,padding:'10px 12px',borderRadius:8,border:`1px solid ${billStrategy===o.v?'var(--accent)':'var(--border)'}`,background:billStrategy===o.v?'rgba(15,42,77,0.1)':'var(--card2)',textAlign:'left',cursor:'pointer',transition:'all .2s'}}>
+                                    <div style={{fontSize:12,fontWeight:600,color:billStrategy===o.v?'var(--accent)':'var(--text)',marginBottom:2}}>{o.l}</div>
+                                    <div style={{fontSize:10,color:'var(--text3)',lineHeight:1.4}}>{o.d}</div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {billData.observaciones&&<div style={{fontSize:12,color:'var(--text2)',background:'var(--card)',borderRadius:8,padding:'8px 12px',border:'1px solid var(--border)',lineHeight:1.6,marginTop:10}}><span style={{fontWeight:600,color:'var(--text3)'}}>📝 </span>{billData.observaciones}</div>}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* MANUAL */}
+            {mode==='manual'&&(
+              <div style={{maxWidth:480,margin:'0 auto'}} className="fade-in">
+                <div className="card">
+                  <div style={{fontSize:13,fontWeight:600,marginBottom:4}}>Consumo mensual en kWh</div>
+                  <div style={{fontSize:12,color:'var(--text2)',marginBottom:18}}>Lo encontrás en tu factura eléctrica</div>
+                  <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:20}}>
+                    <input type="number" value={manual} onChange={e=>setManual(Number(e.target.value))} style={{fontSize:26,fontWeight:700,width:160,textAlign:'center',padding:'12px'}} min="50" max="5000"/>
+                    <span style={{fontSize:16,color:'var(--text2)'}}>kWh / mes</span>
+                  </div>
+                  <input type="range" min="50" max="3000" step="25" value={manual} onChange={e=>setManual(Number(e.target.value))} style={{marginBottom:10}}/>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:'var(--text3)',marginBottom:20}}><span>50</span><span>1000</span><span>2000</span><span>3000 kWh</span></div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+                    {[{l:'Pequeño hogar',v:150},{l:'Hogar familiar',v:350},{l:'Hogar con A/A',v:600},{l:'Comercio',v:1200}].map(p=>(
+                      <button key={p.v} className="btn btn-ghost btn-sm" style={{flexDirection:'column',height:'auto',padding:'10px',textAlign:'center',borderColor:manual===p.v?'var(--accent)':'var(--border)'}} onClick={()=>setManual(p.v)}>
+                        <span style={{fontWeight:700,fontSize:14,color:'var(--accent)'}}>{p.v}</span>
+                        <span style={{fontSize:10,color:'var(--text2)',marginTop:2}}>{p.l}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {mode&&(
+              <div style={{textAlign:'center',marginTop:28}}>
+                <button className="btn btn-primary" style={{padding:'13px 36px',fontSize:15,opacity:canGo?1:0.5,cursor:canGo?'pointer':'not-allowed'}}
+                  onClick={()=>{if(canGo){SFX.step();setStep(1);}}}>
+                  Configurar el sistema <IC.arr/>
+                </button>
+                {!canGo&&mode!=='manual'&&<div style={{fontSize:12,color:'var(--text3)',marginTop:8}}>
+                  {mode==='appliances'?'Agregá al menos un equipo':'Subí tu factura o ingresá el kWh manualmente'}
+                </div>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── STEP 1 ─── */}
+        {step===1&&(
+          <div className="fade-in" style={{maxWidth:860,margin:'0 auto'}}>
+            <div style={{textAlign:'center',marginBottom:28}}>
+              <div style={{fontSize:22,fontWeight:800,marginBottom:8}}>Configurá tu <span className="glow-text">sistema solar</span></div>
+              <p style={{color:'var(--text2)',fontSize:13}}>Consumo estimado: <strong style={{color:'var(--accent)'}}>{fmt(kwhMes,0)} kWh/mes</strong></p>
+            </div>
+            <div className="grid-2" style={{gap:20,marginBottom:24}}>
+              <div className="card">
+                <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:12}}>Tipo de sistema</div>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {[
+                    {v:'ongrid',e:'⚡',t:'Solo ahorro (On-Grid)',d:'Genera energía y reduce tu factura. Excedentes se inyectan a la red.'},
+                    {v:'hybrid',e:'🔋',t:'Ahorro + Respaldo (Híbrido)',d:'Genera energía + batería de respaldo para cortes de luz.'},
+                    {v:'offgrid',e:'🌿',t:'Autonomía total (Off-Grid / Rural)',d:'Sin conexión a la red. Ideal para zonas rurales aisladas.'},
+                  ].map(o=>(
+                    <div key={o.v} className={`mode-card ${sysMode===o.v?"active":""}`} onMouseEnter={SFX.hover} style={{padding:'12px 14px'}} onClick={()=>{SFX.click();setSysMode(o.v);}}>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        <div style={{fontSize:20}}>{o.e}</div>
+                        <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600}}>{o.t}</div><div style={{fontSize:11,color:'var(--text2)',marginTop:2}}>{o.d}</div></div>
+                        {sysMode===o.v&&<div style={{color:'var(--accent)'}}><IC.check/></div>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:14}}>
+                <div className="card">
+                  <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10}}>Conexión eléctrica</div>
+                  <div style={{display:'flex',gap:8}}>
+                    {[{v:'mono',l:'Monofásico (1Ø)',s:'Hogares y comercios pequeños'},{v:'tri',l:'Trifásico (3Ø)',s:'Industrias y grandes comercios'}].map(p=>(
+                      <button key={p.v} onClick={()=>{SFX.click();setPhase(p.v);}} style={{flex:1,padding:'12px',borderRadius:10,border:`1px solid ${phase===p.v?'var(--accent)':'var(--border)'}`,background:phase===p.v?'rgba(15,42,77,0.06)':'var(--card2)',textAlign:'left',cursor:'pointer',transition:'all .2s'}}>
+                        <div style={{fontSize:13,fontWeight:600,color:phase===p.v?'var(--accent)':'var(--text)',marginBottom:4}}>{p.l}</div>
+                        <div style={{fontSize:11,color:'var(--text2)'}}>{p.s}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="card">
+                  <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10}}>Tipo de instalación</div>
+                  <div style={{display:'flex',gap:8}}>
+                    {[{v:'chapa',e:'🏚️',l:'Chapa',s:'5° incl.'},{v:'teja',e:'🏘️',l:'Teja',s:'25° incl.'},{v:'suelo',e:'🏔️',l:'Suelo/Losa',s:'30° incl.'}].map(r=>(
+                      <button key={r.v} onClick={()=>{SFX.click();setRoof(r.v);}} style={{flex:1,padding:'10px',borderRadius:10,border:`1px solid ${roof===r.v?'var(--accent)':'var(--border)'}`,background:roof===r.v?'rgba(15,42,77,0.06)':'var(--card2)',textAlign:'center',cursor:'pointer',transition:'all .2s'}}>
+                        <div style={{fontSize:18,marginBottom:4}}>{r.e}</div>
+                        <div style={{fontSize:11,fontWeight:600,color:roof===r.v?'var(--accent)':'var(--text)'}}>{r.l}</div>
+                        <div style={{fontSize:10,color:'var(--text3)'}}>{r.s}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="card">
+                  <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:8}}>📍 Provincia</div>
+                  <select value={zone} onChange={e=>setZone(e.target.value)} style={{width:'100%'}}>
+                    {PROV.map(z=><option key={z.id} value={z.id}>{z.name} — {z.hsp} HSP/día</option>)}
+                  </select>
+                  <div style={{marginTop:8,fontSize:11,color:'var(--text2)'}}>
+                    Irradiancia: <strong style={{color:'var(--accent)'}}>{zoneObj.hsp} HSP</strong> · Rendimiento: <strong style={{color:'var(--accent)'}}>{fmt(zoneObj.hsp*30*SE*(EFF[roof]||1),0)} kWh/kWp·mes</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:12,justifyContent:'center'}}>
+              <button className="btn btn-secondary" onClick={()=>setStep(0)}>← Volver</button>
+              <button className="btn btn-primary" style={{padding:'13px 36px',fontSize:15}} onClick={()=>{SFX.success();setStep(2);}}>Ver recomendación IA <IC.arr/></button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── RESULTS ────────────────────────────────────────────────────────────────────
+function Results({opt,rob,kwhMes,sysMode,phase,roof,zone,billData,factura,setFactura,usd,setUsd,onBack}){
+  const [tab,setTab]=useState('kits');
+  const [roiK,setRoiK]=useState('opt');
+  const [tna,setTna]=useState(60);
+  const [extraOpt,setExtraOpt]=useState(0);
+  const [extraRob,setExtraRob]=useState(0);
+
+  const gOpt=opt?gen(opt.Wp,zone.hsp,roof):0;
+  const gRob=rob?gen(rob.Wp,zone.hsp,roof):0;
+  const cOpt=kwhMes>0?Math.min(Math.round((gOpt/kwhMes)*100),100):0;
+  const cRob=kwhMes>0?Math.min(Math.round((gRob/kwhMes)*100),100):0;
+
+  const billN=parseFloat(factura)||0;
+  const batPrice=phase==='mono'?BAT_MONO:BAT_TRI;
+  const rKit=roiK==='opt'?opt:rob;
+  const rExtra=roiK==='opt'?extraOpt:extraRob;
+  const rCov=roiK==='opt'?cOpt:cRob;
+  const rPrice=rKit?(rKit.price+rExtra*batPrice):0;
+  const rARS=rPrice*usd;
+  const ahMes=billN*(rCov/100);
+  const ahAno=ahMes*12;
+  const payback=ahAno>0?(rARS/ahAno):0;
+
+  // KIT CARD
+  function KitCard({kit,g,cov,type,label,color,bc,extra,setExtra}){
+    if(!kit) return(
+      <div className="kit-card" style={{padding:28,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'var(--text3)',minHeight:200,gap:10}}>
+        <span style={{fontSize:28}}>—</span>
+        <span style={{fontSize:13}}>No hay opción superior disponible</span>
+      </div>
+    );
+    const hasBat=kit.bat>0;
+    const totalBat=kit.bat+(extra*BAT_KWH);
+    const aH=autoHours(totalBat,kwhMes);
+    const aStr=fmtAuto(aH);
+    const extraCost=extra*batPrice;
+    const totalP=kit.price+extraCost;
+    const st=kit.str[roof]||kit.str.chapa;
+    return(
+      <div className={`kit-card ${type}`}>
+        <div className="kit-header">
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+            <div>
+              <span className={`badge ${bc}`}>{label}</span>
+              <div className="kit-name">{kit.name}</div>
+              <div style={{fontSize:12,color:'var(--text2)',marginTop:2}}>{kit.id} · {(kit.Wp/1000).toFixed(2)} kWp · {kit.panels} paneles TCL 585W TopCon</div>
+            </div>
+            <div style={{textAlign:'right',minWidth:100}}>
+              <div style={{fontSize:22,fontWeight:800,color,fontFamily:'Manrope'}}>{fmtUSD(totalP)}</div>
+              {extra>0&&<div style={{fontSize:11,color:'var(--text3)',textDecoration:'line-through'}}>{fmtUSD(kit.price)}</div>}
+              <div style={{fontSize:10,color:'var(--text3)'}}>+ IVA · sin instalación</div>
+            </div>
+          </div>
+          <div style={{marginTop:12}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}}>
+              <span style={{fontSize:11,color:'var(--text2)'}}>Cobertura del consumo</span>
+              <span style={{fontSize:16,fontWeight:800,color:cov>=100?color:'var(--text)'}}>{cov}%</span>
+            </div>
+            <div className="coverage-bar"><div className="coverage-fill" style={{width:`${cov}%`,background:`linear-gradient(90deg,${color},${color}99)`}}/></div>
+            <div style={{fontSize:11,color:'var(--text2)',marginTop:4}}>Genera <strong style={{color}}>{fmt(g,0)} kWh/mes</strong> de {fmt(kwhMes,0)} kWh de consumo</div>
+          </div>
+        </div>
+        <div className="kit-stats">
+          <div className="kit-stat">
+            <div className="kit-stat-label">🔆 Generación mensual</div>
+            <div className="kit-stat-value" style={{color}}>{fmt(g,0)} <span style={{fontSize:12,color:'var(--text2)',fontWeight:400}}>kWh</span></div>
+          </div>
+          <div className="kit-stat">
+            <div className="kit-stat-label">⚡ Potencia pico</div>
+            <div className="kit-stat-value">{(kit.Wp/1000).toFixed(2)} <span style={{fontSize:12,color:'var(--text2)',fontWeight:400}}>kWp</span></div>
+          </div>
+          <div className="kit-stat">
+            <div className="kit-stat-label">🔄 Inversor</div>
+            <div className="kit-stat-value" style={{fontSize:12,lineHeight:1.3}}>{kit.inv}</div>
+          </div>
+          {hasBat?(
+            <div className="kit-stat" style={{borderColor:extra>0?'rgba(217,119,6,0.3)':'var(--border)',background:extra>0?'rgba(217,119,6,0.05)':'var(--card2)'}}>
+              <div className="kit-stat-label">🔋 Batería · Autonomía</div>
+              <div className="kit-stat-value" style={{fontSize:14,color:extra>0?'#b45309':undefined}}>
+                {totalBat} kWh
+                {aStr&&<span style={{fontSize:11,color:'var(--text2)',fontWeight:400,display:'block',marginTop:2}}>~{aStr} a plena carga*</span>}
+              </div>
+              {extra>0&&<div style={{fontSize:10,color:'#b45309',marginTop:2}}>+{extra} módulo{extra>1?'s':''} adicional{extra>1?'es':''}</div>}
+            </div>
+          ):(
+            <div className="kit-stat">
+              <div className="kit-stat-label">🏗️ Estructura</div>
+              <div className="kit-stat-value" style={{fontSize:12}}>{st}</div>
+            </div>
+          )}
+        </div>
+
+        {/* ADICIONALES */}
+        {hasBat&&(
+          <div className="battery-panel">
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+              <IC.bat/><div style={{fontSize:12,fontWeight:600,color:'#b45309'}}>Adicionales — Ampliar banco de baterías</div>
+            </div>
+            <div style={{fontSize:11,color:'var(--text2)',marginBottom:12,lineHeight:1.6}}>
+              Cada módulo suma <strong style={{color:'var(--text)'}}>5 kWh</strong> y extiende la autonomía. <strong style={{color:'#b45309'}}>{fmtUSD(batPrice)} + IVA</strong> por módulo.<br/>
+              <span style={{fontSize:10,color:'var(--text3)'}}>*Autonomía calculada con <strong>todos los equipos a plena carga simultánea</strong> (escenario más conservador). En la práctica la duración real es mayor.</span>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <button onClick={()=>{SFX.remove();setExtra(Math.max(0,extra-1));}}
+                style={{width:32,height:32,borderRadius:8,border:'1px solid rgba(217,119,6,0.3)',background:'rgba(217,119,6,0.1)',color:'#b45309',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}
+                disabled={extra===0}><IC.minus/></button>
+              <div style={{textAlign:'center',minWidth:70}}>
+                <div style={{fontSize:22,fontWeight:800,color:'#b45309',fontFamily:'Manrope'}}>{extra}</div>
+                <div style={{fontSize:10,color:'var(--text3)'}}>módulo{extra!==1?'s':''} extra</div>
+              </div>
+              <button onClick={()=>{SFX.add();setExtra(extra+1);}}
+                style={{width:32,height:32,borderRadius:8,border:'1px solid rgba(217,119,6,0.3)',background:'rgba(217,119,6,0.1)',color:'#b45309',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}><IC.plus/></button>
+              {extra>0&&(
+                <div style={{marginLeft:6,flex:1}}>
+                  <div style={{fontSize:12,color:'#b45309',fontWeight:600}}>+{fmtUSD(extraCost)} extra</div>
+                  <div style={{fontSize:11,color:'var(--text2)'}}>Total: <strong style={{color:'var(--text)'}}>{fmtUSD(totalP)}</strong> · {totalBat} kWh · {aStr||'—'}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div style={{padding:'0 20px 18px'}}>
+          <div style={{background:`${color}08`,borderRadius:10,padding:'9px 14px',border:`1px solid ${color}20`,fontSize:12,color:'var(--text2)',lineHeight:1.5}}>
+            {sysMode==='ongrid'&&`Sistema conectado a la red. Excedentes se inyectan y generan créditos. Payback est.: ${billN>0?`${(kit.price*usd/(billN*(cov/100)*12)).toFixed(1)} años`:'4-7 años'} según autoconsumo.`}
+            {sysMode==='hybrid'&&`Con ${totalBat} kWh de batería tenés ${aStr||'—'} de autonomía a plena carga ante cortes de red.`}
+            {sysMode==='offgrid'&&`Sistema autónomo. Con ${totalBat} kWh garantizás ${aStr||'—'} de suministro a plena carga.`}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return(
+    <div style={{minHeight:'100vh'}}>
+      <div className="nav">
+        <LogoRV h={38}/>
+        <div className="nav-steps">
+          {['Consumo','Configuración','Resultado'].map((s,i)=>(
+            <div key={i} className={`step-pill ${i===2?'active':i<2?'done':''}`}>{i+1}. {s}</div>
+          ))}
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <LogoTCL h={24}/>
+          <button className="btn btn-ghost btn-sm" onClick={onBack}>← Modificar</button>
+        </div>
+      </div>
+      <div className="main">
+        {/* Summary */}
+        <div className="ai-box" style={{display:'flex',alignItems:'center',gap:16,flexWrap:'wrap',marginBottom:20}}>
+          <div style={{flex:1}}>
+            <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:5}}><IC.spark/><span style={{fontSize:13,fontWeight:600,color:'var(--accent)'}}>Análisis IA completado</span></div>
+            <div style={{fontSize:13,color:'var(--text2)'}}>
+              Para <strong style={{color:'var(--text)'}}>{fmt(kwhMes,0)} kWh/mes</strong> en <strong style={{color:'var(--text)'}}>{zone.name}</strong> ({zone.hsp} HSP) ·
+              Sistema <strong style={{color:'var(--text)'}}>{sysMode==='ongrid'?'On-Grid':sysMode==='hybrid'?'Híbrido':'Off-Grid'}</strong> · {phase==='mono'?'Monofásico':'Trifásico'} · {roof.charAt(0).toUpperCase()+roof.slice(1)}
+            </div>
+          </div>
+          <div style={{display:'flex',gap:6,flexShrink:0,flexWrap:'wrap'}}>
+            <span className="badge badge-accent"><IC.sun/> {zone.hsp} HSP/día</span>
+            {sysMode!=='ongrid'&&<span className="badge badge-blue"><IC.bat/> Con batería</span>}
+            <span className="badge badge-orange">{phase==='mono'?'1Ø':'3Ø'} · {roof}</span>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="tab-bar">
+          {[{id:'kits',l:'🏆 Kits Recomendados'},{id:'roi',l:'💰 Retorno de Inversión'},{id:'bill',l:'📊 Análisis Tarifario'},{id:'bom',l:'📋 Lista de Materiales'}].map(t=>(
+            <button key={t.id} className={`tab ${tab===t.id?'active':''}`} onClick={()=>{SFX.click();setTab(t.id);}}>{t.l}</button>
+          ))}
+        </div>
+
+        {/* KITS */}
+        {tab==='kits'&&(
+          <div className="fade-in">
+            <div className="grid-2" style={{gap:20}}>
+              <KitCard kit={opt} g={gOpt} cov={cOpt} type="recommended" label="⭐ Recomendado" color="var(--accent)" bc="badge-accent" extra={extraOpt} setExtra={setExtraOpt}/>
+              <KitCard kit={rob} g={gRob} cov={cRob} type="robust" label="💪 Opción Robusta" color="var(--accent2)" bc="badge-blue" extra={extraRob} setExtra={setExtraRob}/>
+            </div>
+            {billN<=0&&<div style={{textAlign:'center',marginTop:20}}><button className="btn btn-secondary" onClick={()=>setTab('roi')}>💰 Calcular retorno de inversión →</button></div>}
+          </div>
+        )}
+
+        {/* ROI */}
+        {tab==='roi'&&(
+          <div className="fade-in" style={{maxWidth:880,margin:'0 auto'}}>
+            <div className="grid-2" style={{gap:20}}>
+              <div className="card">
+                <div style={{fontSize:13,fontWeight:600,marginBottom:16}}>📊 Parámetros financieros</div>
+                <div style={{marginBottom:14}}>
+                  <label style={{fontSize:11,color:'var(--text3)',display:'block',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.04em'}}>Kit a calcular</label>
+                  <div style={{display:'flex',gap:8}}>
+                    {[{v:'opt',k:opt},{v:'rob',k:rob}].filter(x=>x.k).map(({v,k})=>(
+                      <button key={v} onClick={()=>setRoiK(v)} className={`btn ${roiK===v?'btn-primary':'btn-secondary'} btn-sm`}>{k.name}</button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{marginBottom:14}}>
+                  <label style={{fontSize:11,color:'var(--text3)',display:'block',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.04em'}}>Factura mensual de luz ($ ARS)</label>
+                  <input type="number" value={factura} onChange={e=>setFactura(e.target.value)} placeholder="Ej: 85000" style={{width:'100%'}}/>
+                  {billData?.importeTotal&&<div style={{fontSize:11,color:'var(--accent)',marginTop:4}}>✓ De tu factura: ${fmt(billData.importeTotal,0)}</div>}
+                </div>
+                <div style={{marginBottom:14}}>
+                  <label style={{fontSize:11,color:'var(--text3)',display:'block',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.04em'}}>Tipo de cambio USD ($ ARS)</label>
+                  <input type="number" value={usd} onChange={e=>setUsd(Number(e.target.value))} style={{width:'100%'}}/>
+                </div>
+                <div style={{marginBottom:14}}>
+                  <label style={{fontSize:11,color:'var(--text3)',display:'block',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.04em'}}>TNA / inflación tarifaria estimada (%)</label>
+                  <input type="range" min="30" max="200" step="5" value={tna} onChange={e=>setTna(Number(e.target.value))}/>
+                  <div style={{display:'flex',justifyContent:'space-between',fontSize:11,color:'var(--text3)',marginTop:4}}>
+                    <span>30%</span><span style={{color:'var(--accent)',fontWeight:600}}>{tna}%</span><span>200%</span>
+                  </div>
+                </div>
+                {rKit&&(
+                  <div style={{background:'var(--card2)',borderRadius:10,padding:12,border:'1px solid var(--border)'}}>
+                    <div style={{fontSize:11,color:'var(--text2)',marginBottom:4}}>Kit seleccionado</div>
+                    <div style={{fontSize:14,fontWeight:700}}>{rKit.name}{rExtra>0?` +${rExtra} batería${rExtra>1?'s':''} adicional${rExtra>1?'es':''}`:''}</div>
+                    <div style={{fontSize:13,color:'var(--accent)',marginTop:4}}>{fmtUSD(rPrice)} = $ {fmt(rARS,0)} ARS</div>
+                  </div>
+                )}
+              </div>
+              <div className="card">
+                <div style={{fontSize:13,fontWeight:600,marginBottom:14}}>📈 Proyección financiera</div>
+                {billN>0&&rKit?(
+                  <>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:18}}>
+                      <div className="roi-stat"><div className="roi-value" style={{color:'var(--accent)'}}>{ahMes>0?`$${fmt(ahMes,0)}`:'—'}</div><div className="roi-label">Ahorro mensual</div></div>
+                      <div className="roi-stat"><div className="roi-value" style={{color:'var(--yellow)'}}>{payback>0?`${payback.toFixed(1)} años`:'—'}</div><div className="roi-label">Payback simple</div></div>
+                      <div className="roi-stat"><div className="roi-value" style={{color:'var(--green)'}}>{rCov}%</div><div className="roi-label">Cobertura</div></div>
+                    </div>
+                    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                      {[5,10,25].map(y=>(
+                        <div key={y} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'var(--card2)',borderRadius:9,border:'1px solid var(--border)'}}>
+                          <span style={{fontSize:12,color:'var(--text2)'}}>En {y} años ahorrarías</span>
+                          <span style={{fontSize:15,fontWeight:700,color:'var(--green)'}}>$ {fmt(ahAno*y,0)} ARS</span>
+                        </div>
+                      ))}
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:'var(--card2)',borderRadius:9,border:'1px solid var(--border)'}}>
+                        <span style={{fontSize:12,color:'var(--text2)'}}>ROI a 10 años</span>
+                        <span style={{fontSize:15,fontWeight:700,color:((ahAno*10-rARS)/rARS*100)>0?'var(--green)':'var(--red)'}}>
+                          {fmt(((ahAno*10-rARS)/rARS*100),0)}%
+                        </span>
+                      </div>
+                    </div>
+                    <div style={{marginTop:14,padding:'10px 14px',background:'rgba(15,42,77,0.06)',border:'1px solid rgba(15,42,77,0.15)',borderRadius:10,fontSize:12,color:'var(--text2)',lineHeight:1.6}}>
+                      💡 Con inflación tarifaria del <strong style={{color:'var(--text)'}}>{tna}%</strong> anual, el ahorro real crece cada año. El solar protege contra aumentos de tarifas.
+                    </div>
+                  </>
+                ):(
+                  <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'200px',color:'var(--text3)',gap:10}}>
+                    <div style={{fontSize:32}}>💰</div><div style={{fontSize:13,textAlign:'center'}}>Ingresá el importe de tu factura para ver la proyección</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* BILL ANALYSIS */}
+        {tab==='bill'&&(
+          <div className="fade-in" style={{maxWidth:920,margin:'0 auto'}}>
+            {billData?(
+              <div className="card">
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:18}}>
+                  <div>
+                    <div style={{fontSize:16,fontWeight:700}}>{billData.empresa||'Distribuidora'}</div>
+                    <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
+                      {billData.tipoUsuario&&<span className="badge badge-orange">{billData.tipoUsuario}</span>}
+                      {billData.periodo&&<span className="badge badge-blue">{billData.periodo}</span>}
+                      {billData.tieneDesglosoHorario?<span className="badge badge-purple">⏱ Con desglose horario</span>:<span className="badge badge-gray">📋 Sin desglose horario</span>}
+                    </div>
+                  </div>
+                  <span className="badge badge-accent"><IC.spark/> Lectura IA</span>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:20}}>
+                  <div className="bill-block" style={{border:'1px solid rgba(15,42,77,0.25)'}}>
+                    <div className="bill-label">TOTAL consumo</div>
+                    <div className="bill-value" style={{color:'var(--accent)',fontSize:28}}>{billData.totalKwh}</div>
+                    <div className="bill-sub">kWh · {billData.diasPeriodo||30} días · {fmt(billData.promedioDiarioKwh||billData.totalKwh/30,1)} kWh/día</div>
+                  </div>
+                  {billData.tieneDesglosoHorario?(
+                    <>
+                      {billData.picoKwh&&<div className="bill-block"><div className="bill-label">🌞 Pico</div><div className="bill-value" style={{color:'var(--red)'}}>{billData.picoKwh}</div><div className="bill-sub">kWh · {fmt(billData.picoKwh/billData.totalKwh*100,0)}%</div></div>}
+                      {billData.valleKwh&&<div className="bill-block"><div className="bill-label">🌙 Valle</div><div className="bill-value" style={{color:'var(--accent2)'}}>{billData.valleKwh}</div><div className="bill-sub">kWh · {fmt(billData.valleKwh/billData.totalKwh*100,0)}%</div></div>}
+                      {billData.restoKwh&&<div className="bill-block"><div className="bill-label">🌤️ Resto</div><div className="bill-value" style={{color:'var(--yellow)'}}>{billData.restoKwh}</div><div className="bill-sub">kWh · {fmt(billData.restoKwh/billData.totalKwh*100,0)}%</div></div>}
+                    </>
+                  ):(
+                    <div className="bill-block" style={{gridColumn:'span 2'}}>
+                      <div className="bill-label">Tipo de medición</div>
+                      <div style={{fontSize:13,color:'var(--text2)',marginTop:4,lineHeight:1.6}}>Tarifa <strong style={{color:'var(--text)'}}>sin segmentación horaria</strong> (común en residencial T1/R1). El sistema solar cubrirá el consumo diurno de forma proporcional.</div>
+                    </div>
+                  )}
+                  {billData.importeTotal&&<div className="bill-block"><div className="bill-label">💵 Importe</div><div className="bill-value" style={{color:'var(--accent3)'}}>$ {fmt(billData.importeTotal,0)}</div><div className="bill-sub">ARS</div></div>}
+                  {billData.potenciaContratadaKw&&<div className="bill-block"><div className="bill-label">⚡ Potencia contratada</div><div className="bill-value">{billData.potenciaContratadaKw} <span style={{fontSize:12,fontWeight:400,color:'var(--text2)'}}>kW</span></div></div>}
+                </div>
+                {billData.tieneDesglosoHorario&&opt&&(
+                  <div style={{background:'var(--card2)',borderRadius:12,padding:16,border:'1px solid var(--border)',marginBottom:16}}>
+                    <div style={{fontSize:13,fontWeight:600,marginBottom:10}}>Cobertura solar por horario</div>
+                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:12,lineHeight:1.6}}>
+                      El solar genera principalmente en <strong style={{color:'var(--yellow)'}}>horario diurno (pico y resto)</strong>. El <strong style={{color:'var(--accent2)'}}>valle nocturno</strong> se cubre con la red o con batería en sistemas híbridos.
+                    </div>
+                    {[{l:'Pico',kwh:billData.picoKwh,color:'var(--red)',diurno:true,note:'Mayor costo tarifario — solar lo cubre en horario diurno'},
+                      {l:'Resto',kwh:billData.restoKwh,color:'var(--yellow)',diurno:true,note:'Horario diurno estándar — cobertura solar máxima'},
+                      {l:'Valle',kwh:billData.valleKwh,color:'var(--accent2)',diurno:false,note:'Nocturno — cubierto con batería (híbrido) o red (on-grid)'}
+                    ].filter(x=>x.kwh).map(x=>{
+                      const frac=x.kwh/billData.totalKwh;
+                      const sg=x.diurno?gOpt*frac*1.15:sysMode!=='ongrid'?gOpt*frac*.3:0;
+                      const c2=Math.min(100,Math.round((sg/x.kwh)*100));
+                      return(
+                        <div key={x.l} style={{marginBottom:12}}>
+                          <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+                            <span style={{fontSize:12,fontWeight:600,color:x.color}}>{x.l} — {x.kwh} kWh</span>
+                            <span style={{fontSize:11,color:'var(--text2)'}}>Cobertura solar: <strong style={{color:x.color}}>{c2}%</strong></span>
+                          </div>
+                          <div className="coverage-bar" style={{height:6}}><div className="coverage-fill" style={{width:`${c2}%`,background:x.color}}/></div>
+                          <div style={{fontSize:10,color:'var(--text3)',marginTop:3}}>{x.note}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {billData.observaciones&&<div style={{fontSize:12,color:'var(--text2)',background:'var(--card)',borderRadius:8,padding:'10px 12px',border:'1px solid var(--border)',lineHeight:1.6}}><span style={{fontWeight:600,color:'var(--text3)'}}>📝 </span>{billData.observaciones}</div>}
+              </div>
+            ):(
+              <div className="card" style={{textAlign:'center',padding:'52px 24px'}}>
+                <div style={{fontSize:36,marginBottom:14}}>📄</div>
+                <div style={{fontSize:15,fontWeight:600,marginBottom:8}}>No hay factura cargada</div>
+                <div style={{fontSize:13,color:'var(--text2)',marginBottom:20}}>Volvé al paso 1 y subí tu factura para ver el análisis tarifario.</div>
+                <button className="btn btn-secondary" onClick={onBack}>← Volver al inicio</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* BOM */}
+        {tab==='bom'&&(
+          <div className="fade-in" style={{maxWidth:920,margin:'0 auto'}}>
+            <div className="grid-2" style={{gap:20}}>
+              {[{kit:opt,l:'Recomendado',color:'var(--accent)',extra:extraOpt},{kit:rob,l:'Opción Robusta',color:'var(--accent2)',extra:extraRob}].map(({kit:k,l,color,extra})=>{
+                if(!k) return <div key={l}/>;
+                const st=k.str[roof]||k.str.chapa;
+                const cs=Math.ceil(k.panels/8);
+                const totalBat=k.bat+(extra*BAT_KWH);
+                const batQ=k.bat>0?Math.round(totalBat/BAT_KWH):0;
+                const isHV=(k.batModel||'').includes('HV');
+                const extraCost=extra*batPrice;
+                const totalP=k.price+extraCost;
+                const items=[
+                  {qty:k.panels,u:'u.',n:'Panel Solar TCL 585W TopCon Bifacial',code:'TCL-MI585DH182-72NT'},
+                  {qty:1,u:'u.',n:`Inversor ${k.inv}`,code:k.inv.split(' ')[1]||''},
+                  {qty:cs,u:'set',n:'Cables + Conectores DC',code:'CC-20'},
+                  {qty:1,u:'u.',n:`Smart Energy Controller ${phase==='tri'?'Trifásico':'Monofásico'}`,code:phase==='tri'?'GMK330':'GMK110'},
+                ];
+                if(k.bat>0){
+                  items.push({qty:batQ,u:'u.',n:`Módulo Batería 5kWh ${isHV?'HV':'LV'}${extra>0?` (+${extra} adicional${extra>1?'es':''})`:' '}`,code:isHV?'LX-D5.0-10':'LX-U5.0-30'});
+                  if(isHV) items.push({qty:1,u:'u.',n:'PCU – Controlador HV',code:'PCU-HV'});
+                  items.push({qty:1,u:'set',n:'Cables de Batería',code:'CB-SET'});
+                }
+                items.push({qty:1,u:'set',n:`Estructura ${st} (${roof})`,code:st});
+                return(
+                  <div key={l} className="card">
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
+                      <div>
+                        <span className={`badge ${color==='var(--accent)'?'badge-accent':'badge-blue'}`}>{l}</span>
+                        <div style={{fontSize:16,fontWeight:700,marginTop:6}}>{k.name}</div>
+                        {extra>0&&<div style={{fontSize:11,color:'#b45309',marginTop:2}}>+{extra} batería{extra>1?'s':''} adicional{extra>1?'es':''}</div>}
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:18,fontWeight:800,color}}>{fmtUSD(totalP)}</div>
+                        {extra>0&&<div style={{fontSize:11,color:'var(--text3)',textDecoration:'line-through'}}>{fmtUSD(k.price)}</div>}
+                        <div style={{fontSize:10,color:'var(--text3)'}}>+ IVA</div>
+                      </div>
+                    </div>
+                    <div style={{background:'var(--card2)',borderRadius:10,overflow:'hidden',border:'1px solid var(--border)'}}>
+                      <div style={{display:'grid',gridTemplateColumns:'36px 1fr 90px',padding:'7px 12px',borderBottom:'1px solid var(--border)',fontSize:10,color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.04em',fontWeight:600}}>
+                        <span>Cant.</span><span>Componente</span><span>Código</span>
+                      </div>
+                      {items.map((it,i)=>(
+                        <div key={i} className="bom-row">
+                          <div style={{fontWeight:700,color}}>{it.qty}<span style={{fontSize:10,color:'var(--text3)',fontWeight:400}}> {it.u}</span></div>
+                          <div style={{fontSize:12,fontWeight:500}}>{it.n}</div>
+                          <div style={{fontSize:10,color:'var(--text3)',fontFamily:'monospace'}}>{it.code}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{marginTop:14,padding:'10px 12px',background:`${color}08`,border:`1px solid ${color}20`,borderRadius:10,fontSize:12,color:'var(--text2)'}}>
+                      {totalBat>0&&(()=>{const aH2=autoHours(totalBat,kwhMes);const aS2=fmtAuto(aH2);return <div style={{marginBottom:8}}>🔋 Banco total: <strong style={{color:'var(--text)'}}>{totalBat} kWh</strong>{aS2&&<> · Autonomía: <strong style={{color:'#b45309'}}>~{aS2}</strong> a plena carga</>}</div>})()}
+                      ✉️ <strong style={{color:'var(--text)'}}>info@rvenergia.com.ar</strong> · +54 (11) 5140-6628
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div style={{marginTop:32,textAlign:'center',borderTop:'1px solid var(--border)',paddingTop:24}}>
+          <div style={{fontSize:13,color:'var(--text2)',marginBottom:14}}>¿Querés una cotización formal o tenés dudas técnicas?</div>
+          <div style={{display:'flex',gap:10,justifyContent:'center',flexWrap:'wrap'}}>
+            <a href="https://wa.me/5401151406628" target="_blank" rel="noopener" style={{textDecoration:'none'}}>
+              <button className="btn btn-primary" style={{background:'#25D366'}}>💬 WhatsApp</button>
+            </a>
+            <a href="mailto:info@rvenergia.com.ar" style={{textDecoration:'none'}}>
+              <button className="btn btn-secondary">✉️ info@rvenergia.com.ar</button>
+            </a>
+            <a href="https://www.rvenergia.com.ar" target="_blank" rel="noopener" style={{textDecoration:'none'}}>
+              <button className="btn btn-ghost">🌐 www.rvenergia.com.ar</button>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+
+</script>
+</body>
+</html>
