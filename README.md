@@ -123,7 +123,8 @@ rv_propuestas/
 │   │       ├── edenor.py
 │   │       ├── edesur.py
 │   │       ├── edesa.py
-│   │       └── eden.py
+│   │       ├── eden.py
+│   │       └── pampa.py     # MATE — Grandes Usuarios (Pampa Energía SA)
 │   ├── ubicacion.py           # PVGIS API + estimación offline
 │   └── pdi.py                 # BT/MT, capacidad disponible, trafo
 ├── sizing/
