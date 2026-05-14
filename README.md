@@ -200,6 +200,8 @@ rv_propuestas/
 │   │       └── cammesa.py   # Mercado Eléctrico Mayorista (potencia GU)
 │   ├── ubicacion.py           # PVGIS API + estimación offline
 │   └── pdi.py                 # BT/MT, capacidad disponible, trafo
+├── integraciones/
+│   └── pvsyst.py              # Memo + parser CSV + comparador con sizing interno
 ├── sizing/
 │   ├── engine.py              # kWp objetivo + cobertura + tope por PDI
 │   └── topologia.py           # Selección inversores GoodWe + string sizing
@@ -219,7 +221,8 @@ tests/
 ├── test_smoke.py              # 4 casos pipeline end-to-end (30 kW / 250 kW / 1 MW / 3 MW)
 ├── test_facturas.py           # 23 tests: detección + parsers + validación
 ├── test_template.py           # 15 tests: filtros, sustitución, persistencia .pptx
-└── test_precios.py            # 7 tests: integridad SKU/precio del catálogo
+├── test_precios.py            # 7 tests: integridad SKU/precio del catálogo
+└── test_pvsyst.py             # 14 tests: parser CSV + memo + comparador
 ```
 
 ## Reglas de negocio implementadas
@@ -234,6 +237,79 @@ tests/
 | Formato AR (coma decimal) | Contexto §8 | `config.fmt_ar()` |
 | Módulo TCL 720 W referencia | Catálogo Main Components D03.26 | `config.MODULO_REF` |
 | Ratio DC/AC ≤ 1.30 | Datasheet GoodWe | `sizing.topologia` |
+
+## Integración PVSyst
+
+Para proyectos >100 kW conviene validar el sizing en PVSyst antes de firmar.
+La pipeline tiene un bridge bidireccional:
+
+### Export — Memo para alimentar PVSyst
+
+```powershell
+py -m rv_propuestas.cli desde-factura `
+    --pdf factura.pdf --lat -34.6 --lon -58.4 `
+    --tension-pdi 0.38 --fases 3 --capacidad-pdi 300 `
+    --pvsyst-memo                                    # ← genera PVSYST_INPUT_*.txt
+```
+
+Salida `PVSYST_INPUT_<proyecto>.txt`:
+```
+═══════════════════════════════════════════════════════
+PVSYST INPUT MEMO · RV Energía · Planta ACME 250 kW
+═══════════════════════════════════════════════════════
+
+GEOGRAPHIC SITE
+  Location:        Buenos Aires, Argentina
+  Latitude:        -34.6000°
+  Longitude:       -58.4000°
+  Altitude:        — (cargar de mapa)
+  Meteo:           PVGIS-SARAH3 · 4.85 kWh/m²/día prom
+
+SYSTEM SIZING
+  Total Pnom (DC): 304.6 kWp
+  Inverters (AC):  2 × GoodWe HTH 136 kW 3F (cotizar) = 272 kW
+  DC/AC ratio:     1.12
+
+MODULE
+  Manufacturer:    TCL SOLAR
+  Model:           TCL-MG720DT210-68NS
+  ...
+
+STRING CONFIGURATION
+  Modules/string:     18
+  Total strings:      24
+  ...
+
+NEXT STEPS
+  1. Crear proyecto en PVSyst con met data PVGIS-SARAH3 del lat/lon arriba.
+  ...
+```
+
+El ingeniero usa el memo para setear el proyecto en PVSyst sin re-tipear specs.
+
+### Import — Override con reporte validado
+
+Tras correr la simulación, exportar "Main results, per month" como CSV y pasarlo:
+
+```powershell
+py -m rv_propuestas.cli desde-factura `
+    ... `
+    --pvsyst-report .\reportes\acme_pvsyst.csv
+```
+
+El parser detecta automáticamente:
+- Delimitador (`;` europeo, `,` US, tab)
+- Decimales (coma EU o punto US)
+- Unidades (MWh vs kWh)
+- Meses (inglés, español, francés)
+
+Y reemplaza `sizing.generacion_anual_kwh` por el valor PVSyst, recalculando cobertura. Si la diferencia con nuestra estimación supera 10%, emite un warning:
+
+```
+✓ PVSyst: 432,670 kWh anuales · PR 0.832
+⚠ Δ -12.3%: PVSyst da 432,670 kWh vs estimación interna 493,500 kWh.
+  Revisar PR, irradiación o pérdidas.
+```
 
 ## Catálogo de precios
 
@@ -260,8 +336,7 @@ pasarlo con `--precios data/precios.yaml`.
    MO eléctrica, ingeniería).
 2. **Sumar parsers**: EDEA, EDET, EDEMSA, EJESA — esperar PDFs reales.
 3. **Calibrar stubs**: EDENOR, EPEC, CAMMESA con PDFs reales.
-4. **Integración PVSyst** — bridge para validar proyectos >100 kW antes de firmar.
-5. **Integración ClickUp** — empujar el resumen al pipeline (workspace `90132555978`).
+4. **Integración ClickUp** — empujar el resumen al pipeline (workspace `90132555978`).
 
 ## Notas de entorno
 

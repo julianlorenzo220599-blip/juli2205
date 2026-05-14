@@ -46,6 +46,8 @@ def cmd_demo(args) -> None:
         usar_pvgis=not args.offline,
         precios_path=args.precios,
         template_ppt=args.template,
+        pvsyst_memo=args.pvsyst_memo,
+        pvsyst_report=args.pvsyst_report,
     )
 
 
@@ -69,6 +71,8 @@ def cmd_desde_factura(args) -> None:
         usar_pvgis=not args.offline,
         precios_path=args.precios,
         template_ppt=args.template,
+        pvsyst_memo=args.pvsyst_memo,
+        pvsyst_report=args.pvsyst_report,
     )
 
 
@@ -140,6 +144,10 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_demo.add_argument("--precios", default="./data/precios.example.yaml")
     p_demo.add_argument("--template", default=None,
                         help="Ruta a un .pptx de RV con placeholders {{clave}}")
+    p_demo.add_argument("--pvsyst-memo", action="store_true",
+                        help="Generar memo PVSYST_INPUT_*.txt junto al resto del output")
+    p_demo.add_argument("--pvsyst-report", default=None,
+                        help="Path al CSV de PVSyst para override de generación")
     p_demo.set_defaults(func=cmd_demo)
 
     p_real = sub.add_parser("desde-factura", help="Procesa una factura PDF real")
@@ -158,6 +166,12 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_real.add_argument("--precios", default="./data/precios.example.yaml")
     p_real.add_argument("--template", default=None,
                         help="Ruta a un .pptx de RV con placeholders {{clave}}")
+    p_real.add_argument("--pvsyst-memo", action="store_true",
+                        help="Generar PVSYST_INPUT_<proy>.txt con todos los parámetros "
+                             "para transcribir a PVSyst")
+    p_real.add_argument("--pvsyst-report", default=None,
+                        help="Path al CSV 'Main results, per month' de PVSyst — "
+                             "reemplaza la estimación interna por la validada")
     p_real.set_defaults(func=cmd_desde_factura)
 
     p_ph = sub.add_parser(

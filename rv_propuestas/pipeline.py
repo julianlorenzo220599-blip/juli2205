@@ -45,6 +45,8 @@ def ejecutar_pipeline(
     usar_pvgis: bool = True,
     precios_path: Optional[str | Path] = None,
     template_ppt: Optional[str | Path] = None,
+    pvsyst_memo: bool = False,
+    pvsyst_report: Optional[str | Path] = None,
 ) -> dict[str, Path]:
     """Corre la pipeline completa y devuelve las rutas de los archivos generados."""
     salida = Path(salida)
@@ -66,6 +68,22 @@ def ejecutar_pipeline(
     # 3) Topología (inversores + strings)
     inv_cfg = seleccionar_inversores(sizing.kwp_real)
     str_cfg = configurar_strings(sizing.n_paneles, inv_cfg)
+
+    # 3b) Override con PVSyst si lo pasaron (sustituye nuestra estimación
+    # heurística por la simulación validada de PVSyst).
+    if pvsyst_report:
+        from .integraciones.pvsyst import comparar, parsear_reporte_csv
+        resultado_pvsyst = parsear_reporte_csv(pvsyst_report)
+        comp = comparar(sizing, resultado_pvsyst)
+        print(f"✓ PVSyst: {resultado_pvsyst.energia_anual_kwh:,.0f} kWh anuales · PR {resultado_pvsyst.pr_anual or '—'}")
+        if comp.warning:
+            print(f"⚠ {comp.warning}")
+        sizing.generacion_anual_kwh = round(resultado_pvsyst.energia_anual_kwh, 0)
+        if sizing.consumo_anual_kwh:
+            sizing.cobertura = round(
+                resultado_pvsyst.energia_anual_kwh / sizing.consumo_anual_kwh, 3
+            )
+        sizing.notas.append(f"Generación validada por PVSyst ({Path(pvsyst_report).name})")
 
     # 4) BOM
     bom = generar_bom(sizing, inv_cfg, str_cfg, pdi)
@@ -106,4 +124,20 @@ def ejecutar_pipeline(
     print(f"→ Revisión interna: {out_excel}")
     print(f"→ Propuesta cliente: {out_ppt}")
 
-    return {"excel": out_excel, "ppt": out_ppt}
+    salidas: dict[str, Path] = {"excel": out_excel, "ppt": out_ppt}
+
+    # PVSyst memo: emitir un .txt con todo el setup para que el ingeniero
+    # transcriba a PVSyst en vez de re-tipear specs.
+    if pvsyst_memo:
+        from .integraciones.pvsyst import generar_memo
+        memo = generar_memo(
+            factura=factura, sizing=sizing, ubicacion=ubicacion,
+            irradiacion=irradiacion, inv_cfg=inv_cfg, str_cfg=str_cfg,
+            proyecto=proyecto_nombre,
+        )
+        out_memo = salida / f"PVSYST_INPUT_{slug}.txt"
+        out_memo.write_text(memo, encoding="utf-8")
+        print(f"→ Memo PVSyst:      {out_memo}")
+        salidas["pvsyst_memo"] = out_memo
+
+    return salidas
