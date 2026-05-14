@@ -43,16 +43,63 @@ py -m rv_propuestas.cli desde-factura `
     --salida .\output
 ```
 
-### Si el parser no reconoce la distribuidora
+## Ingesta de facturas
 
-Configurá la API key de Claude para el fallback LLM:
+### Distribuidoras con parser nativo (gratis, offline)
+
+| Distribuidora | Cobertura                       | Estado |
+|---|---|---|
+| EDESUR        | CABA + GBA Sur                  | ✓ T3 BT/MT con tabla histórica 6 meses |
+| EDESA         | Salta                           | ✓ T1/T2/T3 mensual |
+| EDEN          | Norte Pcia. Bs As (Junín, S.N.) | ✓ T1RM mensual |
+| EDENOR        | CABA + GBA Norte                | ⚠ esqueleto genérico — validar con PDF real |
+
+Las demás (EDEA, EPEC, EDET, EDEMSA, EJESA, cooperativas) usan automáticamente
+el fallback LLM si está disponible.
+
+### Fallback LLM (Claude API)
 
 ```powershell
 $env:ANTHROPIC_API_KEY = "sk-ant-..."
+# Opcional: cambiar modelo (default haiku-4-5-20251001)
+$env:RV_LLM_MODEL = "claude-haiku-4-5-20251001"
 ```
 
-El parser híbrido intenta primero el parser específico (EDENOR está implementado
-como base; el resto vía LLM) y solo cae al LLM cuando es necesario.
+El subsistema intenta primero el parser específico; si falla, llama a Claude
+con el texto extraído. PDFs escaneados (sin texto) se mandan como documento
+PDF directo (modo vision). Las respuestas se cachean por SHA-256 en
+`~/.rv_cache/facturas/` para no re-pagar la API.
+
+### Sin API key — fallback CSV manual
+
+```python
+from pathlib import Path
+from rv_propuestas.inputs.facturas import interactivo
+
+interactivo.crear_plantilla_csv(Path("kwh.csv"))   # 12 filas vacías
+# editás kwh.csv a mano
+factura = interactivo.leer_csv(Path("kwh.csv"), distribuidora="COOP_LA_CALDERA")
+```
+
+### Cliente con varias facturas mensuales
+
+Si el cliente manda 12 PDFs (uno por mes, típico T1/T2), parseá cada uno y
+consolidá:
+
+```python
+from rv_propuestas.inputs.facturas import parse_pdf, merge_facturas
+
+facturas = [parse_pdf(p) for p in pdfs]
+combo = merge_facturas(facturas)   # consumos unificados por mes
+```
+
+### Sumar una nueva distribuidora
+
+1. Crear `rv_propuestas/inputs/facturas/parsers/<nombre>.py`.
+2. Implementar `parse(texto: str) -> Optional[Factura]` decorado con
+   `@register("NOMBRE", [patrones_de_deteccion])` desde `..registry`.
+3. Importarlo en `parsers/__init__.py`.
+4. Sumar test en `tests/test_facturas.py` con un excerpt real del PDF.
 
 ## Estructura del paquete
 
@@ -62,7 +109,20 @@ rv_propuestas/
 ├── pipeline.py                # Orquestador
 ├── cli.py                     # Entry point: `py -m rv_propuestas.cli ...`
 ├── inputs/
-│   ├── facturas.py            # Parser híbrido + fallback Claude API
+│   ├── facturas/              # Subsistema multi-distribuidora
+│   │   ├── api.py             # parse_pdf, from_manual, merge_facturas
+│   │   ├── modelo.py          # Factura, ConsumoMensual
+│   │   ├── registry.py        # @register, detectar()
+│   │   ├── pdf_text.py        # extraer_texto + parece_escaneado
+│   │   ├── llm.py             # Claude API (texto/vision) + caché SHA-256
+│   │   ├── validacion.py      # Sanity checks
+│   │   ├── interactivo.py     # Fallback CSV manual
+│   │   ├── util.py            # parse_num_ar (formato AR)
+│   │   └── parsers/           # Plugins por distribuidora (auto-registro)
+│   │       ├── edenor.py
+│   │       ├── edesur.py
+│   │       ├── edesa.py
+│   │       └── eden.py
 │   ├── ubicacion.py           # PVGIS API + estimación offline
 │   └── pdi.py                 # BT/MT, capacidad disponible, trafo
 ├── sizing/
@@ -80,7 +140,8 @@ data/
 └── precios.example.yaml       # Catálogo de precios USD — editar con datos reales
 
 tests/
-└── test_smoke.py              # 4 casos (30 kW / 250 kW / 1 MW / 3 MW)
+├── test_smoke.py              # 4 casos pipeline end-to-end (30 kW / 250 kW / 1 MW / 3 MW)
+└── test_facturas.py           # 17 tests: detección + parsers + validación
 ```
 
 ## Reglas de negocio implementadas
@@ -96,13 +157,14 @@ tests/
 | Módulo TCL 725 W referencia | Contexto §3 | `config.MODULO_REF` |
 | Ratio DC/AC ≤ 1.30 | Datasheet GoodWe | `sizing.topologia` |
 
-## Próximos pasos (no incluidos en este MVP)
+## Próximos pasos
 
 1. **Calibrar precios reales** en `data/precios.yaml` (renombrar `.example.yaml`).
-2. **Sumar parsers de distribuidoras** prioritarias (EDESUR, EPEC) con PDFs reales.
-3. **Template PPT corporativo** — pasar via `--template` para usar el master de RV.
-4. **Integración PVSyst** — bridge para validar proyectos >100 kW antes de firmar.
-5. **Integración ClickUp** — empujar el resumen al pipeline (workspace `90132555978`).
+2. **Sumar parsers**: EPEC, EDEA, EDET, EDEMSA, EJESA — esperar PDFs reales.
+3. **Validar EDENOR** contra una factura real (el parser actual es genérico).
+4. **Template PPT corporativo** — pasar via `--template` para usar el master de RV.
+5. **Integración PVSyst** — bridge para validar proyectos >100 kW antes de firmar.
+6. **Integración ClickUp** — empujar el resumen al pipeline (workspace `90132555978`).
 
 ## Notas de entorno
 
