@@ -76,6 +76,49 @@ Potencia Contratada: 150,00 kW
 02/2025  Energía  33.500 kWh
 """
 
+# EPEC stub — excerpt simulado del layout de la factura escaneada
+# A(17) 00026-01266330 (MOLINOS MARIMBO SAIC, MT, marzo 2026). Calibrar
+# contra PDF real cuando llegue.
+EXCERPT_EPEC = """
+EPEC
+LIQUIDACION DE SERVICIOS PUBLICOS A (17) N° 00026-01266330
+MOLINOS MARIMBO SAIC
+DEAN FUNES Y ARRASCAETA LA CARLOTA PCIA DE CORDOBA
+2670 CORDOBA
+CLIENTE N°  00160787
+CONTRATO N° 00278648/01
+TENSION   Media Tension
+PERIODO LEIDO   28/02/2026 al 31/03/2026
+03/2026
+COSENO FI 0,9522
+
+FACTURACION
+DESCRIPCION                                    CANTIDAD     PRECIO UNIT.    IMPORTE
+Cargo Cap.Trans.DP                                 1116    15632,877900    17.446.291,74
+Cargo Cap.Trans.DF                                 1132    12093,762000    13.690.138,58
+Peaje en H. Valle                                142020        4,974910       706.536,72
+Peaje en H. Pico                                 109176        5,138280       560.976,86
+Peaje en H. Resto                                305136        5,029990     1.534.831,03
+"""
+
+# CAMMESA stub — excerpt simulado del layout de factura A-0057-00373700
+# (mismo cliente, suministro 23808, feb-2026). Calibrar con PDF real.
+EXCERPT_CAMMESA = """
+CAMMESA
+Ruta 34 "S" Km. 3,5 (2121) PEREZ - Pcia. Santa Fe
+C.U.I.T. N° 30-65537309-4
+FACTURA N° 0057-00373700
+Señor(es):
+MOLINOS MARIMBO SAIC
+ARRASCAETA 88
+2670 - La Carlota - CORDOBA
+Período Facturado: 01/02/2026 al 28/02/2026
+Suministro 23808 MOMALCXN
+Cantidad    Descripción                  Precio Medio    Importe
+101,800 MW Cargos de Potencia              24.799,75    2.524.615,00
+0,700      Cargo por Comercialización    385.992,86      270.195,00
+"""
+
 # Pampa Energía S.A. — Mercado a Término. Excerpt textual literal del PDF
 # 1593-A00144687 (MOLINOS MARIMBO SAIC, feb-2026) extraído con `pdftotext -layout`.
 EXCERPT_PAMPA = """
@@ -119,6 +162,14 @@ def test_deteccion_edenor():
 
 def test_deteccion_pampa():
     assert detectar(EXCERPT_PAMPA) == "PAMPA"
+
+
+def test_deteccion_epec():
+    assert detectar(EXCERPT_EPEC) == "EPEC"
+
+
+def test_deteccion_cammesa():
+    assert detectar(EXCERPT_CAMMESA) == "CAMMESA"
 
 
 def test_deteccion_eden_no_confunde_edenor():
@@ -201,6 +252,40 @@ def test_parser_pampa():
     assert fac.fuente == "parser:PAMPA"
 
 
+def test_parser_epec():
+    fac = get_parser("EPEC")(EXCERPT_EPEC)
+    assert fac is not None
+    assert fac.distribuidora == "EPEC"
+    assert fac.nis == "00160787"
+    assert fac.tension_suministro.startswith("MT")
+    assert fac.categoria_tarifaria == "T3-MT"
+    assert fac.potencia_contratada_kw == 1116
+    assert len(fac.consumos) == 1
+    assert fac.consumos[0].mes == "2026-03"
+    # 142020 valle + 109176 pico + 305136 resto = 556332
+    assert fac.consumos[0].kwh_total == 556332
+    assert fac.consumos[0].kwh_pico == 109176
+    assert fac.consumos[0].kwh_valle == 142020
+    assert fac.consumos[0].kwh_resto == 305136
+    assert fac.fuente == "parser:EPEC"
+
+
+def test_parser_cammesa():
+    fac = get_parser("CAMMESA")(EXCERPT_CAMMESA)
+    assert fac is not None
+    assert fac.distribuidora == "CAMMESA"
+    assert fac.categoria_tarifaria == "GU-MEM"
+    assert fac.nis == "23808"
+    assert "MOLINOS" in fac.titular
+    # 101,800 MW (coma decimal AR) → 101.8 MW → 101800 kW
+    assert fac.potencia_contratada_kw == 101800
+    assert len(fac.consumos) == 1
+    assert fac.consumos[0].mes == "2026-02"
+    # CAMMESA no factura kWh — emitido como 0 con potencia separada
+    assert fac.consumos[0].kwh_total == 0
+    assert fac.consumos[0].potencia_pico_kw == 101800
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # VALIDACIÓN
 # ──────────────────────────────────────────────────────────────────────────────
@@ -248,7 +333,7 @@ def test_parse_num_ar():
 
 def test_distribuidoras_soportadas():
     soportadas = set(distribuidoras_soportadas())
-    assert {"EDEN", "EDENOR", "EDESA", "EDESUR", "PAMPA"}.issubset(soportadas)
+    assert {"EDEN", "EDENOR", "EDESA", "EDESUR", "PAMPA", "EPEC", "CAMMESA"}.issubset(soportadas)
 
 
 def test_merge_facturas():

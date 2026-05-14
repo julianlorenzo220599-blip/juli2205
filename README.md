@@ -53,7 +53,9 @@ py -m rv_propuestas.cli desde-factura `
 | EDESA         | Salta                           | ✓ T1/T2/T3 mensual |
 | EDEN          | Norte Pcia. Bs As (Junín, S.N.) | ✓ T1RM mensual |
 | EDENOR        | CABA + GBA Norte                | ⚠ esqueleto genérico — validar con PDF real |
+| EPEC          | Córdoba (T3 MT/AT)              | ⚠ stub inferido de factura escaneada — calibrar con PDF real |
 | PAMPA         | Mercado a Término (GU)          | ✓ Energía contratada MATE — combinar con factura de distribución local |
+| CAMMESA       | Mercado Eléctrico Mayorista     | ⚠ stub — solo aporta potencia, no kWh (combinar con distribuidora) |
 
 Las demás (EDEA, EPEC, EDET, EDEMSA, EJESA, cooperativas) usan automáticamente
 el fallback LLM si está disponible.
@@ -124,7 +126,9 @@ rv_propuestas/
 │   │       ├── edesur.py
 │   │       ├── edesa.py
 │   │       ├── eden.py
-│   │       └── pampa.py     # MATE — Grandes Usuarios (Pampa Energía SA)
+│   │       ├── epec.py      # Córdoba (T3 MT/AT)
+│   │       ├── pampa.py     # MATE — Grandes Usuarios (Pampa Energía SA)
+│   │       └── cammesa.py   # Mercado Eléctrico Mayorista (potencia GU)
 │   ├── ubicacion.py           # PVGIS API + estimación offline
 │   └── pdi.py                 # BT/MT, capacidad disponible, trafo
 ├── sizing/
