@@ -45,6 +45,7 @@ def cmd_demo(args) -> None:
         proyecto_nombre="Demo 200 kW",
         usar_pvgis=not args.offline,
         precios_path=args.precios,
+        template_ppt=args.template,
     )
 
 
@@ -67,7 +68,66 @@ def cmd_desde_factura(args) -> None:
         proyecto_nombre=args.proyecto or "",
         usar_pvgis=not args.offline,
         precios_path=args.precios,
+        template_ppt=args.template,
     )
+
+
+def cmd_placeholders(args) -> None:
+    """Inspecciona un .pptx y lista los placeholders {{...}} que contiene.
+
+    Útil para que el diseñador valide su template antes de mandarlo a la
+    pipeline. Compara contra el set de claves soportadas.
+    """
+    from pptx import Presentation
+    from .render.template import listar_placeholders, contexto_de_propuesta
+
+    prs = Presentation(args.template)
+    detectados = listar_placeholders(prs)
+    if not detectados:
+        print(f"⚠ {args.template} no tiene placeholders {{...}} — modo programático")
+        return
+
+    # Calculamos las claves soportadas creando un contexto vacío. Como la firma
+    # requiere objetos, usamos un dict de referencia hardcoded acá. Si se agregan
+    # claves nuevas en contexto_de_propuesta, se reflejan automáticamente.
+    soportadas = _claves_soportadas()
+    print(f"Placeholders detectados en {args.template}:")
+    for k in sorted(detectados):
+        marker = "✓" if k in soportadas else "✗ DESCONOCIDO"
+        print(f"  {marker}  {{{{{k}}}}}")
+
+    no_usados = soportadas - detectados
+    if no_usados and args.verbose:
+        print(f"\nDisponibles pero no usados ({len(no_usados)}):")
+        for k in sorted(no_usados):
+            print(f"     {{{{{k}}}}}")
+
+
+def _claves_soportadas() -> set[str]:
+    """Llama a contexto_de_propuesta() con objetos sentinela para extraer las claves."""
+    from types import SimpleNamespace
+    from .render.template import contexto_de_propuesta
+    sentinel_factura = SimpleNamespace(
+        titular="", distribuidora="", categoria_tarifaria="",
+        tension_suministro="", potencia_contratada_kw=0,
+        consumo_anual_kwh=0, consumo_mensual_promedio=0,
+        direccion="", nis="",
+    )
+    sentinel_sizing = SimpleNamespace(
+        kwp_real=0, n_paneles=0, generacion_anual_kwh=0, cobertura=0,
+    )
+    sentinel_inv = SimpleNamespace(
+        cantidad=0,
+        inversor=SimpleNamespace(sku="", descripcion=""),
+    )
+    sentinel_costeo = SimpleNamespace(
+        neto_cliente=0, iva_total=0, total_cliente=0,
+    )
+    ctx = contexto_de_propuesta(
+        factura=sentinel_factura, sizing=sentinel_sizing,
+        inv_cfg=sentinel_inv, costeo=sentinel_costeo,
+    )
+    return set(ctx.keys())
 
 
 def main(argv: Optional[list[str]] = None) -> int:
@@ -78,6 +138,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_demo.add_argument("--salida", default="./output")
     p_demo.add_argument("--offline", action="store_true", help="Usar irradiación offline (sin PVGIS)")
     p_demo.add_argument("--precios", default="./data/precios.example.yaml")
+    p_demo.add_argument("--template", default=None,
+                        help="Ruta a un .pptx de RV con placeholders {{clave}}")
     p_demo.set_defaults(func=cmd_demo)
 
     p_real = sub.add_parser("desde-factura", help="Procesa una factura PDF real")
@@ -94,7 +156,18 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_real.add_argument("--salida", default="./output")
     p_real.add_argument("--offline", action="store_true")
     p_real.add_argument("--precios", default="./data/precios.example.yaml")
+    p_real.add_argument("--template", default=None,
+                        help="Ruta a un .pptx de RV con placeholders {{clave}}")
     p_real.set_defaults(func=cmd_desde_factura)
+
+    p_ph = sub.add_parser(
+        "placeholders",
+        help="Lista los placeholders {{...}} de un template .pptx",
+    )
+    p_ph.add_argument("--template", required=True, help="Ruta al .pptx a inspeccionar")
+    p_ph.add_argument("-v", "--verbose", action="store_true",
+                      help="Mostrar también claves disponibles pero no usadas")
+    p_ph.set_defaults(func=cmd_placeholders)
 
     args = parser.parse_args(argv)
     args.func(args)

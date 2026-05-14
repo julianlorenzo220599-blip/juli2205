@@ -104,6 +104,75 @@ combo = merge_facturas(facturas)   # consumos unificados por mes
 3. Importarlo en `parsers/__init__.py`.
 4. Sumar test en `tests/test_facturas.py` con un excerpt real del PDF.
 
+## Template PPT corporativo
+
+El renderer detecta automáticamente si el `.pptx` que pasás con `--template`
+contiene placeholders `{{clave}}`:
+
+- **Con placeholders** → modo plantilla: rellena los placeholders in-place,
+  preserva 100% el layout del diseñador, NO agrega slides programáticas.
+- **Sin placeholders** → modo legacy: agrega 5 slides estándar sobre el tema
+  del template.
+
+### Ejemplo de uso
+
+```powershell
+py -m rv_propuestas.cli desde-factura `
+    --pdf factura.pdf --lat -34.6 --lon -58.4 `
+    --tension-pdi 0.38 --fases 3 --capacidad-pdi 300 `
+    --cliente "ACME SA" --proyecto "Planta 250 kW" `
+    --template .\plantillas\propuesta_rv_2026.pptx `
+    --salida .\output
+```
+
+### Sintaxis de placeholders
+
+| Sintaxis | Resultado de ejemplo |
+|---|---|
+| `{{cliente}}` | `ACME SA` |
+| `{{kwp\|1}} kWp` | `242,4 kWp` |
+| `{{kwp\|kwp}}` | `242,4 kWp` |
+| `{{generacion_anual\|kwh}}` | `456.750 kWh` |
+| `{{total_usd\|usd}}` | `USD 229.688` |
+| `{{cobertura_pct\|pct}}` | `95%` |
+| `{{cobertura_pct\|pct1}}` | `95.2%` |
+| `{{n_paneles}}` | `420` |
+
+### Claves disponibles
+
+**Cliente/proyecto**: `cliente`, `titular`, `proyecto`, `direccion`, `nis`, `fecha`, `anio`
+
+**Consumo**: `distribuidora`, `categoria_tarifaria`, `tension`, `potencia_contratada`, `consumo_anual`, `consumo_mensual_promedio`
+
+**Sizing**: `kwp`, `n_paneles`, `wp_panel`, `generacion_anual`, `cobertura_pct`
+
+**Equipamiento**: `n_inversores`, `inversor_sku`, `inversor_descripcion`
+
+**Inversión** (vista cliente, sin márgenes): `neto_usd`, `iva_usd`, `total_usd`, `usd_kwp`
+
+### Inspeccionar un template
+
+```powershell
+py -m rv_propuestas.cli placeholders --template .\plantillas\propuesta_rv_2026.pptx -v
+```
+
+Salida:
+```
+Placeholders detectados en propuesta_rv_2026.pptx:
+  ✓  {{cliente}}
+  ✓  {{kwp}}
+  ✓  {{total_usd}}
+  ✗ DESCONOCIDO  {{xyz_typo}}      ← typo, no se va a sustituir
+
+Disponibles pero no usados:
+     {{cobertura_pct}}
+     {{generacion_anual}}
+     ...
+```
+
+Útil para que el diseñador valide su `.pptx` antes de mandárselo al
+comercial — los `✗ DESCONOCIDO` son typos que pasarían como literal `—`.
+
 ## Estructura del paquete
 
 ```
@@ -140,14 +209,16 @@ rv_propuestas/
 │   └── calculo.py             # Aplica márgenes + contingencia + financiero + IVA diferencial
 └── render/
     ├── revision_interna.py    # Excel para Gabriel (con márgenes)
-    └── propuesta_cliente.py   # PPT cliente (sin márgenes)
+    ├── propuesta_cliente.py   # PPT cliente (sin márgenes)
+    └── template.py            # Motor de placeholders {{clave|filtro}} en .pptx
 
 data/
 └── precios.example.yaml       # Catálogo de precios USD — editar con datos reales
 
 tests/
 ├── test_smoke.py              # 4 casos pipeline end-to-end (30 kW / 250 kW / 1 MW / 3 MW)
-└── test_facturas.py           # 17 tests: detección + parsers + validación
+├── test_facturas.py           # 23 tests: detección + parsers + validación
+└── test_template.py           # 15 tests: filtros, sustitución, persistencia .pptx
 ```
 
 ## Reglas de negocio implementadas
@@ -166,11 +237,10 @@ tests/
 ## Próximos pasos
 
 1. **Calibrar precios reales** en `data/precios.yaml` (renombrar `.example.yaml`).
-2. **Sumar parsers**: EPEC, EDEA, EDET, EDEMSA, EJESA — esperar PDFs reales.
-3. **Validar EDENOR** contra una factura real (el parser actual es genérico).
-4. **Template PPT corporativo** — pasar via `--template` para usar el master de RV.
-5. **Integración PVSyst** — bridge para validar proyectos >100 kW antes de firmar.
-6. **Integración ClickUp** — empujar el resumen al pipeline (workspace `90132555978`).
+2. **Sumar parsers**: EDEA, EDET, EDEMSA, EJESA — esperar PDFs reales.
+3. **Calibrar stubs**: EDENOR, EPEC, CAMMESA con PDFs reales.
+4. **Integración PVSyst** — bridge para validar proyectos >100 kW antes de firmar.
+5. **Integración ClickUp** — empujar el resumen al pipeline (workspace `90132555978`).
 
 ## Notas de entorno
 

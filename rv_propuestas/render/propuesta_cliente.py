@@ -22,6 +22,7 @@ from ..inputs.facturas import Factura
 from ..inputs.ubicacion import IrradiacionAnual
 from ..sizing.engine import SizingResult
 from ..sizing.topologia import ConfiguracionInversores
+from . import template as _tpl
 
 
 AZUL_RV = RGBColor(0x1F, 0x4E, 0x78)
@@ -85,8 +86,21 @@ def render(
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # ── Modo plantilla: si el template tiene placeholders {{...}}, los rellenamos
+    # in-place y devolvemos. NO agregamos slides programáticas: el diseñador
+    # controla 100% el layout. ──────────────────────────────────────────────
     if template_path and Path(template_path).exists():
         prs = Presentation(str(template_path))
+        if _tpl.tiene_placeholders(prs):
+            contexto = _tpl.contexto_de_propuesta(
+                factura=factura, sizing=sizing, inv_cfg=inv_cfg, costeo=costeo,
+                cliente_nombre=cliente_nombre, proyecto_nombre=proyecto_nombre,
+            )
+            n = _tpl.sustituir(prs, contexto)
+            print(f"✓ Plantilla: {n} placeholder(s) sustituido(s) en {Path(template_path).name}")
+            prs.save(str(output_path))
+            return output_path
+        # Template sin placeholders: caemos al modo programático sobre su tema.
     else:
         prs = Presentation()
         prs.slide_width = Inches(13.33)
