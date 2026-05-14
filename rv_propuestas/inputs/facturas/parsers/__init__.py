@@ -7,3 +7,4 @@ from . import edenor   # noqa: F401
 from . import edesur   # noqa: F401
 from . import edesa    # noqa: F401
 from . import eden     # noqa: F401
+from . import pampa    # noqa: F401  (MATE — generador/comercializador para GUs)

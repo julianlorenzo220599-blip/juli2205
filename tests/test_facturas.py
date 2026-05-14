@@ -76,6 +76,27 @@ Potencia Contratada: 150,00 kW
 02/2025  Energía  33.500 kWh
 """
 
+# Pampa Energía S.A. — Mercado a Término. Excerpt textual literal del PDF
+# 1593-A00144687 (MOLINOS MARIMBO SAIC, feb-2026) extraído con `pdftotext -layout`.
+EXCERPT_PAMPA = """
+                    Pampa Energía S.A.
+                    Maipú 1
+                    C1084ABA Ciudad Autónoma de Buenos Aires
+ Central T Loma de la Lata Base
+                    C.U.I.T: 30-52655265-9
+
+ CLIENTE          (10191)                              C.U.I.T.: 30-53758291-6
+ MOLINOS MARIMBO SAIC
+                                                       Ingresos Brutos: 30537582916
+ ARRASCAETA 88
+ LA CARLOTA
+ 2670 JUAREZ CELMAN Córdoba
+
+ 5502293   Fondo Nacional de EE.    MWH    443,520    2.029,00    899.902,08
+
+ Suministro de EE del 1 al 28/02/2026
+"""
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # DETECCIÓN
@@ -94,6 +115,10 @@ def test_deteccion_eden():
 
 def test_deteccion_edenor():
     assert detectar(EXCERPT_EDENOR) == "EDENOR"
+
+
+def test_deteccion_pampa():
+    assert detectar(EXCERPT_PAMPA) == "PAMPA"
 
 
 def test_deteccion_eden_no_confunde_edenor():
@@ -161,6 +186,21 @@ def test_parser_edenor():
     assert fac.consumos[0].kwh_total == 35000
 
 
+def test_parser_pampa():
+    fac = get_parser("PAMPA")(EXCERPT_PAMPA)
+    assert fac is not None
+    assert fac.distribuidora == "PAMPA"
+    assert fac.categoria_tarifaria == "MATE"
+    assert fac.nis == "10191"
+    assert fac.titular == "MOLINOS MARIMBO SAIC"
+    assert "ARRASCAETA 88" in fac.direccion
+    assert len(fac.consumos) == 1
+    assert fac.consumos[0].mes == "2026-02"
+    # 443,520 MWh (coma decimal AR) → 443.52 MWh → 443520 kWh
+    assert fac.consumos[0].kwh_total == 443520.0
+    assert fac.fuente == "parser:PAMPA"
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # VALIDACIÓN
 # ──────────────────────────────────────────────────────────────────────────────
@@ -208,7 +248,7 @@ def test_parse_num_ar():
 
 def test_distribuidoras_soportadas():
     soportadas = set(distribuidoras_soportadas())
-    assert {"EDEN", "EDENOR", "EDESA", "EDESUR"}.issubset(soportadas)
+    assert {"EDEN", "EDENOR", "EDESA", "EDESUR", "PAMPA"}.issubset(soportadas)
 
 
 def test_merge_facturas():

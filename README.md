@@ -53,6 +53,7 @@ py -m rv_propuestas.cli desde-factura `
 | EDESA         | Salta                           | ✓ T1/T2/T3 mensual |
 | EDEN          | Norte Pcia. Bs As (Junín, S.N.) | ✓ T1RM mensual |
 | EDENOR        | CABA + GBA Norte                | ⚠ esqueleto genérico — validar con PDF real |
+| PAMPA         | Mercado a Término (GU)          | ✓ Energía contratada MATE — combinar con factura de distribución local |
 
 Las demás (EDEA, EPEC, EDET, EDEMSA, EJESA, cooperativas) usan automáticamente
 el fallback LLM si está disponible.
