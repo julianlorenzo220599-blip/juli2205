@@ -1,30 +1,61 @@
-# Catálogo de precios RV Energía (USD, FOB Buenos Aires).
-# Cargar precios reales aquí — el motor de costeo lee este YAML.
-# Para SKUs faltantes, el sistema dejará la celda en blanco y los listará
-# en la hoja "Notas" del Excel de revisión interna.
+# Catálogo de precios RV Energía — USD contado SIN IVA.
 #
-# Convención: usar precios netos (sin márgenes RV ni IVA).
+# Fuente: Catálogo Main Components RV Energía D03.26
+#         santiago.basombrio@radiovictoria.com.ar
+# Valores en USD a TC BNA.
+#
+# IMPORTANTE:
+# - "Catálogo oficial" → precios cargados desde el catálogo de RV.
+# - "(estimado)"       → valores tentativos para items de BoS no incluidos
+#                        en el catálogo principal (cables, tableros, trafos,
+#                        mano de obra, ingeniería, logística). Validar contra
+#                        cotizaciones reales antes de cerrar oferta.
+# - Inversores >125 kW NO están en el catálogo retail (GW136K-HTH, GW225K-HTH,
+#   GW250K-HTH); requieren cotización a fábrica. Aparecerán en la hoja "Notas"
+#   del Excel de revisión interna.
+#
+# Para usar otro archivo de precios en producción, copialo a `data/precios.yaml`
+# (ignorado por git) y pasalo con `--precios data/precios.yaml`.
 
 modulos:
-  TCL-MI725DH210-66NT: 65.00     # USD por panel 725 W
+  # Catálogo oficial — IVA 10.5% (Ley 27.191)
+  TCL-MI585DH182-72NT: 82.00     # 585 Wp
+  TCL-MG720DT210-68NS: 100.00    # 720 Wp TCL TOPCon Bifacial G12-68 (referencia EPC)
 
 inversores:
-  GW25K-MT: 1750.00
-  GW50K-MT: 3200.00
-  GW80K-HT: 5500.00
-  GW100K-HT: 6800.00
-  GW125K-HT: 8200.00
-  GW136K-HTH: 9500.00
-  GW225K-HTH: 14500.00
-  GW250K-HTH: 16000.00
-
-estructura:
-  EST-EPC: 28.00                 # USD/m² (suelo / techo industrial)
+  # Catálogo oficial — IVA 21%
+  GW8000-SDT-30: 959.00
+  GW12K-SDT-30: 992.00
+  GW20K-SDT-30: 1223.00
+  GW30K-SDT-C30: 1157.00
+  GW50KS-MT: 2231.00
+  GW80K-SMT: 2624.00
+  GW100K-GT: 3884.00
+  GW125K-GT: 4050.00
+  # >125 kW: cotizar a fábrica — sin precio aquí los lista en "Notas"
+  # GW136K-HTH, GW225K-HTH, GW250K-HTH
 
 accesorios:
-  GMK-EPC: 850.00                # Smart energy controller EPC
+  # Catálogo oficial — IVA 10.5% (componente generación renovable)
+  GMK110: 63.00                  # Smart meter monofásico GoodWe
+  GMK330: 226.00                 # Smart meter trifásico GoodWe (default EPC)
+
+estructura:
+  # (estimado) — kits residenciales del catálogo van por cantidad de paneles;
+  # para EPC industrial el motor usa USD/m². Validar con cotizaciones reales.
+  EST-EPC: 28.00                 # USD/m² (suelo / techo industrial)
+  # Catálogo residencial RV (USD por kit):
+  EST-CHAPA-5: 98.00
+  EST-CHAPA-6: 112.00
+  EST-CHAPA-8: 146.00
+  EST-TEJA-6: 212.00             # válido para 5 y 6 paneles
+  EST-TEJA-8: 314.00
+  EST-SUELO-5: 364.00
+  EST-SUELO-6: 404.00
+  EST-SUELO-8: 500.00
 
 electrico:
+  # (estimado) — BoS no incluido en catálogo principal
   CAB-DC-6: 1.10                 # USD/m (rojo + negro juntos)
   MC4-PAR: 2.50
   CAB-AC: 12.00                  # USD/m AC armado (sección típica)
@@ -45,14 +76,16 @@ electrico:
   TRAFO-3050: 96500.00
   CELDA-MT: 18500.00
   PROT-MT-RELE: 2800.00
-  MO-ELEC: 0.45                  # USD por kWp (escalable) — se multiplica por kWp en el costeo
+  MO-ELEC: 50.00                 # USD/kWp — mano de obra eléctrica (validar con RV)
 
 ingenieria:
+  # (estimado) — honorarios profesionales
   ING-PEM: 4500.00
   ING-PVSYST: 1800.00
   ING-DIST: 2500.00
   ING-DIRECCION: 3500.00
 
 logistica:
-  FLETE: 1200.00                 # base; ajustar por distancia
+  # (estimado) — depende de zona y distancia al PDI
+  FLETE: 1200.00
   IZAJE: 2800.00

@@ -218,7 +218,8 @@ data/
 tests/
 ├── test_smoke.py              # 4 casos pipeline end-to-end (30 kW / 250 kW / 1 MW / 3 MW)
 ├── test_facturas.py           # 23 tests: detección + parsers + validación
-└── test_template.py           # 15 tests: filtros, sustitución, persistencia .pptx
+├── test_template.py           # 15 tests: filtros, sustitución, persistencia .pptx
+└── test_precios.py            # 7 tests: integridad SKU/precio del catálogo
 ```
 
 ## Reglas de negocio implementadas
@@ -231,12 +232,32 @@ tests/
 | IVA 10.5% paneles + smart meter | Ley 27.191 | `config.SKU_IVA_REDUCIDO_PATTERNS` |
 | IVA 21% resto | — | `config.IVA_GENERAL` |
 | Formato AR (coma decimal) | Contexto §8 | `config.fmt_ar()` |
-| Módulo TCL 725 W referencia | Contexto §3 | `config.MODULO_REF` |
+| Módulo TCL 720 W referencia | Catálogo Main Components D03.26 | `config.MODULO_REF` |
 | Ratio DC/AC ≤ 1.30 | Datasheet GoodWe | `sizing.topologia` |
+
+## Catálogo de precios
+
+`data/precios.example.yaml` viene cargado con los precios del **Catálogo
+Main Components RV Energía D03.26** (módulos TCL, inversores GoodWe 8–125
+kW, smart meters GMK110/330, estructuras residenciales).
+
+Los items de BoS (cables, tableros, trafos, mano de obra, ingeniería,
+logística) están marcados como `(estimado)` — RV debe validarlos contra
+cotizaciones reales antes de cerrar oferta.
+
+**Inversores >125 kW** (GW136K-HTH, GW225K-HTH, GW250K-HTH) NO están en el
+catálogo retail; los proyectos que los requieran (>250 kW DC con un solo
+inversor) aparecen en la hoja "Notas" del Excel de revisión interna para
+que RV los cotice a fábrica.
+
+Para overridear precios en un install productivo: copiar
+`data/precios.example.yaml` a `data/precios.yaml` (ignorado por git) y
+pasarlo con `--precios data/precios.yaml`.
 
 ## Próximos pasos
 
-1. **Calibrar precios reales** en `data/precios.yaml` (renombrar `.example.yaml`).
+1. **Validar BoS estimados** con cotizaciones reales de RV (cables, trafos,
+   MO eléctrica, ingeniería).
 2. **Sumar parsers**: EDEA, EDET, EDEMSA, EJESA — esperar PDFs reales.
 3. **Calibrar stubs**: EDENOR, EPEC, CAMMESA con PDFs reales.
 4. **Integración PVSyst** — bridge para validar proyectos >100 kW antes de firmar.

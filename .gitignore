@@ -3,3 +3,7 @@ __pycache__/
 output/smoke/
 .venv/
 *.egg-info/
+
+# Precios reales (puede contener costos sensibles); usar precios.example.yaml como base
+data/precios.yaml
+

@@ -78,15 +78,15 @@ class Modulo:
     bifacial: bool = True
 
 MODULO_REF = Modulo(
-    sku="TCL-MI725DH210-66NT",
+    sku="TCL-MG720DT210-68NS",
     marca="TCL SOLAR",
-    descripcion="Módulo Fotovoltaico TOPCon Bifacial 725W G12-66P",
-    wp=725,
-    voc=46.8,
-    isc=19.40,
-    vmpp=39.2,
-    impp=18.50,
-    eficiencia=0.233,
+    descripcion="Módulo Fotovoltaico TOPCon Bifacial 720W G12-68",
+    wp=720,
+    voc=46.30,
+    isc=19.50,
+    vmpp=38.40,
+    impp=18.75,
+    eficiencia=0.231,
     largo_mm=2382,
     ancho_mm=1134,
     bifacial=True,
@@ -108,14 +108,20 @@ class Inversor:
     fase: str  # "1F" / "3F"
 
 INVERSORES_EPC = [
-    Inversor("GW25K-MT",     "GoodWe MT 25 kW 3F",   25,  37.5, 3, 2, 200, 1000, "3F"),
-    Inversor("GW50K-MT",     "GoodWe MT 50 kW 3F",   50,  75.0, 4, 2, 200, 1000, "3F"),
-    Inversor("GW80K-HT",     "GoodWe HT 80 kW 3F",   80, 120.0, 8, 2, 200, 1100, "3F"),
-    Inversor("GW100K-HT",    "GoodWe HT 100 kW 3F", 100, 150.0, 9, 2, 200, 1100, "3F"),
-    Inversor("GW125K-HT",    "GoodWe HT 125 kW 3F", 125, 187.5, 10, 2, 200, 1100, "3F"),
-    Inversor("GW136K-HTH",   "GoodWe HTH 136 kW 3F",136, 204.0, 12, 2, 200, 1500, "3F"),
-    Inversor("GW225K-HTH",   "GoodWe HTH 225 kW 3F",225, 337.5, 18, 2, 200, 1500, "3F"),
-    Inversor("GW250K-HTH",   "GoodWe HTH 250 kW 3F",250, 375.0, 20, 2, 200, 1500, "3F"),
+    # Catálogo oficial RV Energía (D03.26) — precios en data/precios.example.yaml
+    Inversor("GW8000-SDT-30",  "GoodWe SDT 8 kW 3F",     8,  12.0, 2, 1, 200, 1000, "3F"),
+    Inversor("GW12K-SDT-30",   "GoodWe SDT 12 kW 3F",   12,  18.0, 2, 1, 200, 1000, "3F"),
+    Inversor("GW20K-SDT-30",   "GoodWe SDT 20 kW 3F",   20,  30.0, 3, 1, 200, 1000, "3F"),
+    Inversor("GW30K-SDT-C30",  "GoodWe SDT 30 kW 3F",   30,  45.0, 3, 1, 200, 1000, "3F"),
+    Inversor("GW50KS-MT",      "GoodWe MT 50 kW 3F",    50,  75.0, 4, 2, 200, 1000, "3F"),
+    Inversor("GW80K-SMT",      "GoodWe SMT 80 kW 3F",   80, 120.0, 8, 2, 200, 1100, "3F"),
+    Inversor("GW100K-GT",      "GoodWe GT 100 kW 3F",  100, 150.0, 9, 2, 200, 1100, "3F"),
+    Inversor("GW125K-GT",      "GoodWe GT 125 kW 3F",  125, 187.5, 10, 2, 200, 1100, "3F"),
+    # Centrales HTH para proyectos >125 kW — NO en catálogo retail, requieren cotización.
+    # El motor de costeo los dejará sin precio y aparecerán en la hoja "Notas".
+    Inversor("GW136K-HTH",     "GoodWe HTH 136 kW 3F (cotizar)", 136, 204.0, 12, 2, 200, 1500, "3F"),
+    Inversor("GW225K-HTH",     "GoodWe HTH 225 kW 3F (cotizar)", 225, 337.5, 18, 2, 200, 1500, "3F"),
+    Inversor("GW250K-HTH",     "GoodWe HTH 250 kW 3F (cotizar)", 250, 375.0, 20, 2, 200, 1500, "3F"),
 ]
 
 # ──────────────────────────────────────────────────────────────────────────────

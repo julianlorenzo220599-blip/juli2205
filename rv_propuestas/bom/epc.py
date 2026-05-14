@@ -98,11 +98,11 @@ def generar_bom(
         unidad="m²",
     ))
 
-    # Smart meter / EMS para inyección controlada
+    # Smart meter trifásico — IVA reducido (componente generación renovable Ley 27.191).
     bom.add(ItemBOM(
         categoria="equipos",
-        sku="GMK-EPC",
-        descripcion="GoodWe Smart Energy Controller EPC + módulo de comunicación",
+        sku="GMK330",
+        descripcion="GoodWe Smart Meter trifásico GMK330",
         cantidad=1,
         unidad="u",
         iva_reducido=True,
@@ -189,14 +189,13 @@ def generar_bom(
             unidad="u",
         ))
 
-    # Mano de obra eléctrica (gl, escala con kWp)
+    # Mano de obra eléctrica — escala con kWp (precio en USD/kWp).
     bom.add(ItemBOM(
         categoria="electrico",
         sku="MO-ELEC",
         descripcion="Mano de obra eléctrica e instalación",
-        cantidad=1,
-        unidad="gl",
-        notas=f"Escala con kWp: {kwp:.1f}",
+        cantidad=round(kwp, 1),
+        unidad="kWp",
     ))
 
     # ── INGENIERÍA ────────────────────────────────────────────────────────────
