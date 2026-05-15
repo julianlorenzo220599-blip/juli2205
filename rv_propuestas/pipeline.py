@@ -47,6 +47,8 @@ def ejecutar_pipeline(
     template_ppt: Optional[str | Path] = None,
     pvsyst_memo: bool = False,
     pvsyst_report: Optional[str | Path] = None,
+    clickup_push: bool = False,
+    clickup_list_id: Optional[str] = None,
 ) -> dict[str, Path]:
     """Corre la pipeline completa y devuelve las rutas de los archivos generados."""
     salida = Path(salida)
@@ -139,5 +141,18 @@ def ejecutar_pipeline(
         out_memo.write_text(memo, encoding="utf-8")
         print(f"→ Memo PVSyst:      {out_memo}")
         salidas["pvsyst_memo"] = out_memo
+
+    # Push automático a ClickUp con el resumen de la propuesta + attachments
+    if clickup_push:
+        from .integraciones.clickup import crear_task_propuesta
+        res = crear_task_propuesta(
+            factura=factura, sizing=sizing, inv_cfg=inv_cfg, costeo=costeo,
+            ubicacion=ubicacion, proyecto=proyecto_nombre, cliente=cliente_nombre,
+            attachments=[out_excel, out_ppt],
+            list_id=clickup_list_id,
+        )
+        if res is not None:
+            print(f"→ ClickUp task:     {res.task_url} ({res.attachments_subidos} adjunto/s)")
+            salidas["clickup_task_id"] = res.task_id   # type: ignore[assignment]
 
     return salidas

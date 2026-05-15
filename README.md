@@ -201,7 +201,8 @@ rv_propuestas/
 │   ├── ubicacion.py           # PVGIS API + estimación offline
 │   └── pdi.py                 # BT/MT, capacidad disponible, trafo
 ├── integraciones/
-│   └── pvsyst.py              # Memo + parser CSV + comparador con sizing interno
+│   ├── pvsyst.py              # Memo + parser CSV + comparador con sizing interno
+│   └── clickup.py             # Push automático de task + adjuntos al workspace
 ├── sizing/
 │   ├── engine.py              # kWp objetivo + cobertura + tope por PDI
 │   └── topologia.py           # Selección inversores GoodWe + string sizing
@@ -311,6 +312,52 @@ Y reemplaza `sizing.generacion_anual_kwh` por el valor PVSyst, recalculando cobe
   Revisar PR, irradiación o pérdidas.
 ```
 
+## Integración ClickUp
+
+Al cerrar la pipeline, opcionalmente crea una task con el resumen de la
+propuesta + Excel + PPT adjuntos. Útil para tracking comercial sin doble
+carga manual.
+
+### Setup (una vez)
+
+```powershell
+$env:CLICKUP_API_TOKEN = "pk_..."          # User Settings → Apps → API Token
+$env:CLICKUP_LIST_ID   = "900200123456"    # ID de la lista de propuestas
+```
+
+### Uso
+
+```powershell
+py -m rv_propuestas.cli desde-factura `
+    --pdf factura.pdf --lat -34.6 --lon -58.4 `
+    --tension-pdi 0.38 --fases 3 --capacidad-pdi 300 `
+    --clickup                                   # ← push automático al final
+```
+
+Salida en consola:
+```
+→ Revisión interna: ./output/REVISION_INTERNA_X.xlsx
+→ Propuesta cliente: ./output/PROPUESTA_X.pptx
+→ ClickUp task:     https://app.clickup.com/t/abc123 (2 adjunto/s)
+```
+
+La task contiene:
+- **Título**: `<proyecto> · <kWp> kWp`
+- **Body markdown** con cliente, NIS, distribuidora, sizing, generación,
+  cobertura, inversión, USD/kWp, SKUs sin precio (si los hay) y notas técnicas.
+- **Tags**: `propuesta-auto`, `<distribuidora>`, rango de tamaño
+  (`kwp-0-50` / `kwp-50-250` / `kwp-250-1000` / `kwp-1000+`),
+  `media-tension` si aplica.
+- **Adjuntos**: Excel revisión interna + PPT propuesta cliente.
+
+### Comportamiento defensivo
+
+- Si falta `CLICKUP_API_TOKEN` → skip silencioso (no rompe la pipeline).
+- Si falta `CLICKUP_LIST_ID` (y tampoco se pasó `--clickup-list`) → skip.
+- Si ClickUp responde con error HTTP → loggea y sigue (no aborta).
+
+Los archivos se generan localmente igual; solo el push se omite.
+
 ## Catálogo de precios
 
 `data/precios.example.yaml` viene cargado con los precios del **Catálogo
@@ -336,7 +383,7 @@ pasarlo con `--precios data/precios.yaml`.
    MO eléctrica, ingeniería).
 2. **Sumar parsers**: EDEA, EDET, EDEMSA, EJESA — esperar PDFs reales.
 3. **Calibrar stubs**: EDENOR, EPEC, CAMMESA con PDFs reales.
-4. **Integración ClickUp** — empujar el resumen al pipeline (workspace `90132555978`).
+4. **Obtener CLICKUP_LIST_ID** de la lista de propuestas en producción.
 
 ## Notas de entorno
 

@@ -48,6 +48,8 @@ def cmd_demo(args) -> None:
         template_ppt=args.template,
         pvsyst_memo=args.pvsyst_memo,
         pvsyst_report=args.pvsyst_report,
+        clickup_push=args.clickup,
+        clickup_list_id=args.clickup_list,
     )
 
 
@@ -73,6 +75,8 @@ def cmd_desde_factura(args) -> None:
         template_ppt=args.template,
         pvsyst_memo=args.pvsyst_memo,
         pvsyst_report=args.pvsyst_report,
+        clickup_push=args.clickup,
+        clickup_list_id=args.clickup_list,
     )
 
 
@@ -148,6 +152,9 @@ def main(argv: Optional[list[str]] = None) -> int:
                         help="Generar memo PVSYST_INPUT_*.txt junto al resto del output")
     p_demo.add_argument("--pvsyst-report", default=None,
                         help="Path al CSV de PVSyst para override de generación")
+    p_demo.add_argument("--clickup", action="store_true",
+                        help="Push a ClickUp al finalizar (CLICKUP_API_TOKEN + LIST_ID)")
+    p_demo.add_argument("--clickup-list", default=None)
     p_demo.set_defaults(func=cmd_demo)
 
     p_real = sub.add_parser("desde-factura", help="Procesa una factura PDF real")
@@ -172,6 +179,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_real.add_argument("--pvsyst-report", default=None,
                         help="Path al CSV 'Main results, per month' de PVSyst — "
                              "reemplaza la estimación interna por la validada")
+    p_real.add_argument("--clickup", action="store_true",
+                        help="Crear task automática en ClickUp con resumen + "
+                             "adjuntos (requiere CLICKUP_API_TOKEN + CLICKUP_LIST_ID)")
+    p_real.add_argument("--clickup-list", default=None,
+                        help="Override del CLICKUP_LIST_ID de entorno")
     p_real.set_defaults(func=cmd_desde_factura)
 
     p_ph = sub.add_parser(
