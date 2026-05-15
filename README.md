@@ -1,5 +1,34 @@
 # RV Energía — Automatización de propuestas (30 kW – 3 MW)
 
+**Estado**: Sprint cerrado · 85 tests verde · 8 distribuidoras AR cubiertas
+· catálogo D03.26 + Brief Kits 2026 + Slocable + ABB cargado · bridge
+PVSyst + push ClickUp opcionales.  Ver [CHANGELOG.md](./CHANGELOG.md).
+
+## Quickstart
+
+```powershell
+# 1. Setup (una vez)
+py -m pip install -r requirements.txt
+$env:ANTHROPIC_API_KEY = "sk-ant-..."       # opcional: fallback LLM
+$env:CLICKUP_API_TOKEN = "pk_..."            # opcional: push a ClickUp
+$env:CLICKUP_LIST_ID   = "900200..."
+
+# 2. Caso real desde factura
+py -m rv_propuestas.cli desde-factura `
+    --pdf "C:\facturas\edesur_grandes.pdf" `
+    --lat -34.6 --lon -58.4 --ubicacion "Buenos Aires" `
+    --tension-pdi 13.2 --fases 3 --capacidad-pdi 1200 `
+    --cliente "ACME SA" --proyecto "Planta 1 MW" `
+    --template ".\plantillas\propuesta_rv_2026.pptx" `
+    --pvsyst-memo `
+    --pvsyst-report ".\reportes\acme.csv" `
+    --clickup `
+    --salida .\output
+
+# 3. Validar un template antes de mandarlo a producción
+py -m rv_propuestas.cli placeholders --template propuesta_rv.pptx -v
+```
+
 Pipeline end-to-end:
 
 ```
