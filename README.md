@@ -223,7 +223,8 @@ tests/
 ├── test_facturas.py           # 23 tests: detección + parsers + validación
 ├── test_template.py           # 15 tests: filtros, sustitución, persistencia .pptx
 ├── test_precios.py            # 7 tests: integridad SKU/precio del catálogo
-└── test_pvsyst.py             # 14 tests: parser CSV + memo + comparador
+├── test_pvsyst.py             # 14 tests: parser CSV + memo + comparador
+└── test_clickup.py            # 12 tests: payload, tags, HTTP mocks, attachments
 ```
 
 ## Reglas de negocio implementadas
