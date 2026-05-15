@@ -86,6 +86,65 @@ def test_mo_elec_es_por_kwp():
     )
 
 
+def test_inversores_monofasicos_y_hibridos():
+    """El catálogo D03.26 incluye 1F on-grid + híbridos (mono y trifásicos)."""
+    esperados = [
+        "GW3000-XS-30", "GW5000-MS-30", "GW6000-MS-30",
+        "GW3000-ES-20", "GW5000-ES-20",
+        "GW8000-ET-20", "GW10K-ET-20", "GW12K-ET-20", "GW15K-ET-20",
+    ]
+    faltantes = [s for s in esperados if s not in PRECIOS]
+    assert not faltantes, f"Inversores faltantes: {faltantes}"
+
+
+def test_baterias_litio_disponibles():
+    """Baterías GoodWe Lynx D (HV apilable) y Lynx U (LV con fire suppression)."""
+    assert PRECIOS["LX-D5.0-10"] > 0
+    assert PRECIOS["LX-U5.0-30"] > 0
+
+
+def test_cables_dc_slocable_nacionalizado():
+    """Slocable 4mm² y 6mm² con costo nacionalizado debe estar disponible."""
+    assert "CAB-DC-4-IMP" in PRECIOS
+    assert "CAB-DC-6-IMP" in PRECIOS
+    # 4mm² debe ser más barato que 6mm² (más cobre)
+    assert PRECIOS["CAB-DC-4-IMP"] < PRECIOS["CAB-DC-6-IMP"]
+    # Local debe ser más caro que nacionalizado (consistente con análisis)
+    assert PRECIOS["CAB-DC-6-LOCAL"] > PRECIOS["CAB-DC-6-IMP"]
+
+
+def test_abb_mt_componentes():
+    """Componentes MT del proveedor ABB (parque 1.8 MWp ref)."""
+    assert PRECIOS["TGBT-ABB"] > 100_000          # tablero general de gran porte
+    assert PRECIOS["CELDA-MT-ABB"] > 30_000       # UNISEC 13.2 kV
+    assert PRECIOS["SHELTER-ABB"] > 50_000
+
+
+def test_kits_brief_2026():
+    """Kits packaged del Brief Kit Solares 2026 v3 deben tener precio."""
+    esperados_kits = {
+        "EC-3K": 1099, "EC-5K": 1999, "EC-6K": 2299,
+        "ECT-8K": 3380, "ECT-12K": 4599, "ECT-20K": 6399,
+        "AC-3K": 3199, "AC-5K": 4399,
+        "PS-8K": 6299, "PS-10K": 6899, "PS-12K": 9099, "PS-15K": 10499,
+    }
+    for sku, precio in esperados_kits.items():
+        assert sku in PRECIOS, f"Kit {sku} faltante"
+        assert PRECIOS[sku] == precio, (
+            f"Kit {sku}: esperaba USD {precio}, encontré {PRECIOS[sku]}"
+        )
+
+
+def test_kits_escalado_monotono():
+    """Dentro de cada familia, kits más grandes deben costar más."""
+    # On-Grid 1F
+    assert PRECIOS["EC-3K"] < PRECIOS["EC-5K"] < PRECIOS["EC-6K"]
+    # On-Grid 3F
+    assert PRECIOS["ECT-8K"] < PRECIOS["ECT-12K"] < PRECIOS["ECT-20K"]
+    # Power Station 3F
+    assert PRECIOS["PS-8K"] < PRECIOS["PS-10K"] < PRECIOS["PS-12K"] < PRECIOS["PS-15K"]
+
+
 if __name__ == "__main__":
     import sys
     fns = [v for k, v in sorted(globals().items())

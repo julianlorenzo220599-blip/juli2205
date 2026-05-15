@@ -1,74 +1,168 @@
 # Catálogo de precios RV Energía — USD contado SIN IVA.
 #
-# Fuente: Catálogo Main Components RV Energía D03.26
-#         santiago.basombrio@radiovictoria.com.ar
-# Valores en USD a TC BNA.
+# Fuentes:
+#   - Catálogo Main Components RV Energía D03.26 (santiago.basombrio@rv)
+#   - Brief Kit Solares 2026 v3 (Radio Victoria Argentina S.A.)
+#   - Slocable Quotation SP2026030401/02 (cables DC + MC4, China FOB)
+#   - Excel Cotización Cables Local vs China (nacionalizado AR)
+#   - ABB / Técnicas Modernas (TGBT + AC Combiner + Celdas MT + Shelter, parque 1.8 MWp)
+#   - FREMTEC Cotización Terciarizado Residencial (abril 2026)
 #
-# IMPORTANTE:
-# - "Catálogo oficial" → precios cargados desde el catálogo de RV.
-# - "(estimado)"       → valores tentativos para items de BoS no incluidos
-#                        en el catálogo principal (cables, tableros, trafos,
-#                        mano de obra, ingeniería, logística). Validar contra
-#                        cotizaciones reales antes de cerrar oferta.
-# - Inversores >125 kW NO están en el catálogo retail (GW136K-HTH, GW225K-HTH,
-#   GW250K-HTH); requieren cotización a fábrica. Aparecerán en la hoja "Notas"
-#   del Excel de revisión interna.
+# Convenciones:
+#   "Catálogo oficial" → precio cargado desde catálogo de RV / Brief Kits.
+#   "(import)"         → precio importado/nacionalizado AR (DIE 16% + TE 3% + flete).
+#   "(local)"          → cotizado a proveedor local AR.
+#   "(estimado)"       → valor tentativo — validar antes de cerrar oferta.
+#   "(ABB-1.8MW)"      → escala de proyecto 1.8 MWp; ajustar para otras potencias.
 #
-# Para usar otro archivo de precios en producción, copialo a `data/precios.yaml`
-# (ignorado por git) y pasalo con `--precios data/precios.yaml`.
+# Para overrides locales: copiar a `data/precios.yaml` (ignorado por git) y pasar
+# con `--precios data/precios.yaml`.
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# MÓDULOS FOTOVOLTAICOS — IVA 10.5% (Ley 27.191)
+# ──────────────────────────────────────────────────────────────────────────────
 modulos:
-  # Catálogo oficial — IVA 10.5% (Ley 27.191)
-  TCL-MI585DH182-72NT: 82.00     # 585 Wp
-  TCL-MG720DT210-68NS: 100.00    # 720 Wp TCL TOPCon Bifacial G12-68 (referencia EPC)
+  TCL-MI585DH182-72NT: 82.00     # 585 Wp TOPCon Bifacial (referencia kits residencial)
+  TCL-MG720DT210-68NS: 100.00    # 720 Wp TOPCon Bifacial G12-68 (referencia EPC industrial)
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# INVERSORES GOODWE — IVA 21%
+# ──────────────────────────────────────────────────────────────────────────────
 inversores:
-  # Catálogo oficial — IVA 21%
-  GW8000-SDT-30: 959.00
-  GW12K-SDT-30: 992.00
-  GW20K-SDT-30: 1223.00
-  GW30K-SDT-C30: 1157.00
-  GW50KS-MT: 2231.00
-  GW80K-SMT: 2624.00
-  GW100K-GT: 3884.00
-  GW125K-GT: 4050.00
-  # >125 kW: cotizar a fábrica — sin precio aquí los lista en "Notas"
+  # On-Grid Monofásico (catálogo oficial)
+  GW3000-XS-30: 289.00            # 3 kW 1F
+  GW5000-MS-30: 653.00            # 5 kW 1F
+  GW6000-MS-30: 628.00            # 6 kW 1F
+
+  # On-Grid Trifásico (catálogo oficial)
+  GW8000-SDT-30: 959.00            # 8 kW 3F
+  GW12K-SDT-30: 992.00             # 12 kW 3F
+  GW20K-SDT-30: 1223.00            # 20 kW 3F
+  GW30K-SDT-C30: 1157.00           # 30 kW 3F
+  GW50KS-MT: 2231.00               # 50 kW 3F
+  GW80K-SMT: 2624.00               # 80 kW 3F
+  GW100K-GT: 3884.00               # 100 kW 3F
+  GW125K-GT: 4050.00               # 125 kW 3F
+
+  # Híbrido Monofásico (catálogo oficial)
+  GW3000-ES-20: 992.00             # 3 kW 1F híbrido
+  GW5000-ES-20: 975.00             # 5 kW 1F híbrido
+
+  # Híbrido Trifásico (catálogo oficial)
+  GW8000-ET-20: 1281.00            # 8 kW 3F híbrido
+  GW10K-ET-20: 1322.00             # 10 kW 3F híbrido
+  GW12K-ET-20: 1405.00             # 12 kW 3F híbrido
+  GW15K-ET-20: 1364.00             # 15 kW 3F híbrido
+
+  # >125 kW: cotizar a fábrica — sin precio aquí los lista en hoja "Notas".
   # GW136K-HTH, GW225K-HTH, GW250K-HTH
 
-accesorios:
-  # Catálogo oficial — IVA 10.5% (componente generación renovable)
-  GMK110: 63.00                  # Smart meter monofásico GoodWe
-  GMK330: 226.00                 # Smart meter trifásico GoodWe (default EPC)
 
+# ──────────────────────────────────────────────────────────────────────────────
+# BATERÍAS DE LITIO LiFePO4 — IVA 21%
+# ──────────────────────────────────────────────────────────────────────────────
+baterias:
+  LX-D5.0-10: 1562.00              # GoodWe Lynx D 5 kWh / 435-380 Vdc apilable HV
+  LX-U5.0-30: 1198.00              # GoodWe Lynx U 5 kWh / 51.2 Vdc LV con fire suppression
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SMART METERS Y ACCESORIOS GOODWE — IVA 10.5% (componente generación renovable)
+# ──────────────────────────────────────────────────────────────────────────────
+accesorios:
+  GMK110: 63.00                    # Smart meter monofásico
+  GMK330: 226.00                   # Smart meter trifásico (default EPC)
+  BBP11WW0: 66.00                  # Base para batería Lynx D
+  BBB11WW0: 140.00                 # Soporte (hanger) batería Lynx D
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ESTRUCTURAS DE MONTAJE
+# ──────────────────────────────────────────────────────────────────────────────
 estructura:
-  # (estimado) — kits residenciales del catálogo van por cantidad de paneles;
-  # para EPC industrial el motor usa USD/m². Validar con cotizaciones reales.
-  EST-EPC: 28.00                 # USD/m² (suelo / techo industrial)
-  # Catálogo residencial RV (USD por kit):
+  # Industrial / EPC (estimado USD/m² — validar)
+  EST-EPC: 28.00                   # USD/m² (suelo / techo industrial)
+
+  # Catálogo residencial RV (USD por kit completo, según cantidad de paneles)
   EST-CHAPA-5: 98.00
   EST-CHAPA-6: 112.00
   EST-CHAPA-8: 146.00
-  EST-TEJA-6: 212.00             # válido para 5 y 6 paneles
+  EST-TEJA-6: 212.00               # válido para 5 y 6 paneles
   EST-TEJA-8: 314.00
   EST-SUELO-5: 364.00
   EST-SUELO-6: 404.00
   EST-SUELO-8: 500.00
 
+  # Brief Kits 2026 — códigos canónicos (mapean a EST-* arriba):
+  # C-5U / C-6U / C-8U → chapa coplanar 5/6/8 paneles
+  # T-5U / T-6U / T-8U → teja coplanar
+  # SL-5U / SL-6U / SL-8U → suelo / losa
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CABLES DC + CONECTORES + HERRAMIENTAS
+# Fuente: Slocable SP2026030401 (1×20GP container, 45.000m c/u) +
+#         Excel Cotización Cables Local vs China.
+# ──────────────────────────────────────────────────────────────────────────────
+cables_dc:
+  # Cable solar 1500 VDC H1Z2Z2-K — Slocable (import)
+  # Precio nacionalizado (FOB + flete 4000 USD/contenedor + DIE 16% + TE 3%):
+  CAB-DC-4-IMP: 0.69               # USD/m, 4 mm² (negro o rojo) — 45.000m volume
+  CAB-DC-6-IMP: 1.00               # USD/m, 6 mm² (negro o rojo) — 45.000m volume
+
+  # Local (referencia, sin nombre de proveedor cargado):
+  CAB-DC-4-LOCAL: 0.83             # USD/m
+  CAB-DC-6-LOCAL: 1.13             # USD/m
+
+  # Default usado por el BOM (alias al import nacionalizado del 6mm²):
+  CAB-DC-6: 1.00                   # mantengo SKU legacy para compat con BOM actual
+
+  # Conectores
+  MC4-PAR: 1.00                    # USD/par (2 sets × USD 0.45 c/u import Slocable)
+  MC4-SET: 0.46                    # USD/set individual (40A 1500VDC, copper open pin)
+
+  # Herramientas (1 set por instalador)
+  HERR-PV-CZM-02: 9.00             # Crimping tool para terminal estampado
+  HERR-PV-CZM-03: 22.00            # Crimping tool para terminal torneado
+  HERR-PV-WS: 15.00                # Pelacable solar
+  HERR-PV-MS: 0.25                 # Llave MC4
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ELÉCTRICO BoS — IVA 21%
+# Trafos, celdas MT, protecciones, cableado AC, mano de obra.
+# ──────────────────────────────────────────────────────────────────────────────
 electrico:
-  # (estimado) — BoS no incluido en catálogo principal
-  CAB-DC-6: 1.10                 # USD/m (rojo + negro juntos)
-  MC4-PAR: 2.50
-  CAB-AC: 12.00                  # USD/m AC armado (sección típica)
-  TAB-DC: 480.00
-  TAB-AC: 650.00
-  PAT-MALLA: 1200.00
-  # Referencia FREMTEC (instalador terciarizado residencial, abril 2026):
-  #   6/8 paneles  → USD 1000 instalación + USD 1000 materiales (mono o 3F)
-  #   8/12 paneles → USD 1200 + USD 1200
-  #   12/18 paneles → USD 1400 + USD 1200
-  #   ≈ USD 200-350/kWp para residencial (<13 kWp)
-  # Mantenemos MO-ELEC en USD/kWp para EPC industrial (50 USD/kWp).
-  # Si el target es residencial, considerar usar precios FREMTEC por panel-count.
+  # Cableado AC (estimado — validar con cotizaciones reales)
+  CAB-AC: 12.00                    # USD/m AC armado (sección típica)
+
+  # Tableros (estimado)
+  TAB-DC: 480.00                   # Combinador DC con fusibles + descargadores
+  TAB-AC: 650.00                   # Tablero AC genérico
+
+  # ABB — Tableros y Celdas MT (catálogo oficial, parque 1.8 MWp ref)
+  # Fuente: Propuesta económica TEC-PE-RV-260312-REV_1
+  TGBT-ABB: 187056.95              # Tablero General de Baja Tensión (ABB-1.8MW)
+  AC-COMBINER-ABB: 25619.31        # AC Combiner Box (USD c/u, parque típico 2 unid)
+  CELDA-MT-ABB: 46293.00           # Celdas MT 13.2 kV (ABB UNISEC, 1.8 MWp)
+  PROT-MT-RELE: 2800.00            # Relé 51/27/59/81 (estimado, suelto)
+
+  # Shelter ABB (compartimento equipos MT/BT a la intemperie)
+  SHELTER-ABB: 66339.00            # Shelter base
+  SHELTER-AC-OPT: 11960.00         # OPC: aire acondicionado
+  SHELTER-ESCALERAS-OPT: 8190.00   # OPC: escaleras (USD c/u × 2)
+  SHELTER-INCENDIO-OPT: 10400.00   # OPC: sistema detección incendio
+  SHELTER-IZAJE-OPT: 7800.00       # OPC: puntos de apoyo para elevación
+
+  # Versión genérica/legacy de CELDA-MT (proyectos chicos <500 kWp)
+  CELDA-MT: 18500.00               # (estimado — el ABB UNISEC arriba es para parques GU)
+
+  # Puesta a tierra
+  PAT-MALLA: 1200.00               # Sistema jabalinas + malla equipotencial (estimado)
+
+  # Transformadores elevadores (estimado USD por kVA, validar)
   TRAFO-100: 4500.00
   TRAFO-150: 6200.00
   TRAFO-200: 7800.00
@@ -81,18 +175,57 @@ electrico:
   TRAFO-2500: 82000.00
   TRAFO-3000: 95000.00
   TRAFO-3050: 96500.00
-  CELDA-MT: 18500.00
-  PROT-MT-RELE: 2800.00
-  MO-ELEC: 50.00                 # USD/kWp — mano de obra eléctrica (validar con RV)
 
+  # Mano de obra eléctrica — USD/kWp escalable
+  # FREMTEC (residencial <13 kWp): 200-350 USD/kWp instalación + materiales
+  # EPC industrial (>50 kWp): ~50 USD/kWp (puede bajar a 30 con volumen)
+  MO-ELEC: 50.00
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# INGENIERÍA Y SERVICIOS PROFESIONALES (estimado)
+# ──────────────────────────────────────────────────────────────────────────────
 ingenieria:
-  # (estimado) — honorarios profesionales
-  ING-PEM: 4500.00
-  ING-PVSYST: 1800.00
-  ING-DIST: 2500.00
-  ING-DIRECCION: 3500.00
+  ING-PEM: 4500.00                 # Proyecto Ejecutivo de Montaje
+  ING-PVSYST: 1800.00              # Simulación PVSyst V8 + memoria técnica
+  ING-DIST: 2500.00                # Gestión habilitación ante distribuidora
+  ING-DIRECCION: 3500.00           # Dirección de obra + puesta en marcha
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# LOGÍSTICA (estimado)
+# ──────────────────────────────────────────────────────────────────────────────
 logistica:
-  # (estimado) — depende de zona y distancia al PDI
-  FLETE: 1200.00
-  IZAJE: 2800.00
+  FLETE: 1200.00                   # Flete federal base
+  IZAJE: 2800.00                   # Grúa para montaje (proyectos >200 kW)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# KITS PACKAGED — Brief Kit Solares RV 2026 v3
+# Estos son productos terminados (no SKUs del BOM). Listados para reference.
+# El motor de costeo NO los usa directamente; el comercial los referencia para
+# proyectos residenciales/PyME chicos donde el llave-en-mano cierra rápido.
+# ──────────────────────────────────────────────────────────────────────────────
+kits:
+  # On-Grid Monofásico
+  EC-3K: 1099.00                   # Economy Basic 3 kW (6 paneles + GW3000-XS-30 + GMK110)
+  EC-5K: 1999.00                   # Economy Plus 5 kW (10 paneles + GW5000-MS-30 + GMK110)
+  EC-6K: 2299.00                   # Economy Pro 6 kW (12 paneles + GW6000-MS-30 + GMK110)
+
+  # On-Grid Trifásico
+  ECT-8K: 3380.00                  # Trifásico 8 kW (16 paneles + GW8000-SDT-30 + GMK330)
+  ECT-12K: 4599.00                 # Trifásico Plus 12 kW (24 paneles + GW12K-SDT-30 + GMK330)
+  ECT-20K: 6399.00                 # Trifásico Pro 20 kW (40 paneles + GW20K-SDT-30 + GMK330)
+
+  # Híbrido Monofásico (Always Connected / Rural — comparten BOM)
+  AC-3K: 3199.00                   # 3 kW + batería Lynx U 5 kWh
+  AC-5K: 4399.00                   # 5 kW + batería Lynx U 5 kWh
+
+  # Híbrido Trifásico (Power Station)
+  PS-8K: 6299.00                   # 8 kW + Lynx D 5 kWh + GMK330
+  PS-10K: 6899.00                  # 10 kW + Lynx D 5 kWh
+  PS-12K: 9099.00                  # 12 kW + 2× Lynx D (10 kWh)
+  PS-15K: 10499.00                 # 15 kW + 2× Lynx D (10 kWh)
+
+  # NOTA: los kits NO incluyen estructura. El cliente elige (extra cargo) entre
+  # chapa coplanar, teja coplanar o suelo/losa de la sección `estructura`.

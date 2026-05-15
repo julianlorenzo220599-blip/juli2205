@@ -225,7 +225,7 @@ tests/
 ├── test_smoke.py              # 4 casos pipeline end-to-end (30 kW / 250 kW / 1 MW / 3 MW)
 ├── test_facturas.py           # 27 tests: detección + parsers + validación
 ├── test_template.py           # 15 tests: filtros, sustitución, persistencia .pptx
-├── test_precios.py            # 7 tests: integridad SKU/precio del catálogo
+├── test_precios.py            # 13 tests: integridad SKU/precio + kits + cables Slocable + ABB MT
 ├── test_pvsyst.py             # 14 tests: parser CSV + memo + comparador
 └── test_clickup.py            # 12 tests: payload, tags, HTTP mocks, attachments
 ```
@@ -364,13 +364,27 @@ Los archivos se generan localmente igual; solo el push se omite.
 
 ## Catálogo de precios
 
-`data/precios.example.yaml` viene cargado con los precios del **Catálogo
-Main Components RV Energía D03.26** (módulos TCL, inversores GoodWe 8–125
-kW, smart meters GMK110/330, estructuras residenciales).
+`data/precios.example.yaml` consolida múltiples fuentes oficiales:
 
-Los items de BoS (cables, tableros, trafos, mano de obra, ingeniería,
-logística) están marcados como `(estimado)` — RV debe validarlos contra
-cotizaciones reales antes de cerrar oferta.
+| Sección | Fuente | Cobertura |
+|---|---|---|
+| `modulos` | Catálogo D03.26 | TCL 585 W + 720 W TOPCon Bifacial |
+| `inversores` | Catálogo D03.26 | GoodWe on-grid 1F (3-6 kW), 3F (8-125 kW), híbridos 1F (3-5 kW) y 3F (8-15 kW) |
+| `baterias` | Catálogo D03.26 | GoodWe Lynx D 5 kWh HV + Lynx U 5 kWh LV con fire suppression |
+| `accesorios` | Catálogo D03.26 | Smart meters GMK110/330, base + hanger Lynx D |
+| `estructura` | Catálogo D03.26 | Kits chapa/teja/suelo 5-8 paneles + USD/m² para EPC |
+| `cables_dc` | Slocable SP2026030401 + Excel Local vs China | 4 mm² + 6 mm² nacionalizado (import) y local + MC4 + herramientas |
+| `electrico` | ABB / Técnicas Modernas | TGBT, AC Combiner, Celdas MT UNISEC 13.2 kV, Shelter (escala 1.8 MWp) |
+| `kits` | Brief Kit Solares 2026 v3 | 12 kits packaged: Economy / Always Connected / Trifásico / Power Station / Rural |
+
+Lo que aún tiene flag `(estimado)`:
+- Cables AC armado + tableros AC/DC chicos
+- Transformadores elevadores (TRAFO-100 a TRAFO-3050)
+- Mano de obra eléctrica (MO-ELEC = 50 USD/kWp industrial; FREMTEC ~250 USD/kWp residencial)
+- Ingeniería + logística
+
+Estos son los items que RV todavía debe cotizar con proveedores específicos
+para cerrar oferta firme.
 
 **Inversores >125 kW** (GW136K-HTH, GW225K-HTH, GW250K-HTH) NO están en el
 catálogo retail; los proyectos que los requieran (>250 kW DC con un solo
