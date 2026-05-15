@@ -8,5 +8,6 @@ from . import edesur   # noqa: F401
 from . import edesa    # noqa: F401
 from . import eden     # noqa: F401
 from . import epec     # noqa: F401
+from . import enersa   # noqa: F401
 from . import pampa    # noqa: F401  (MATE — generador/comercializador para GUs)
 from . import cammesa  # noqa: F401  (Mercado Mayorista — cargos de potencia)

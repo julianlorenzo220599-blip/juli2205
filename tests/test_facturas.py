@@ -67,13 +67,64 @@ Nro.Medidor Concepto Lect.Ant. Lect.actual Lect.por Consumo
 """
 
 EXCERPT_EDENOR = """
-EDENOR S.A.
-Empresa Distribuidora y Comercializadora Norte
-Tarifa T3-MD
-NIS 12345678
-Potencia Contratada: 150,00 kW
-01/2025  Energía  35.000 kWh
-02/2025  Energía  33.500 kWh
+Empresa Distribuidora y Comercializadora Norte S. A.
+Liquidación de Servicio Público N° 0027-32228380
+Emisión 11/05/2026 C.A.B.A.
+
+Datos del cliente
+Cuenta 4 682 960 084
+TOTAL A PAGAR                                         $ 10.743,54
+SANGUINA ELSA GRACIELA
+S.E.:069-27
+432 CARBONE A 3661 5
+TARIFA: T1-R1                        Actividad: RESIDENCIAL
+
+Total Consumo                                    118 kWh en 31 días
+Período de consumo: 10/04/2026 AL 11/05/2026
+"""
+
+# EDESUR T1 residencial — formato distinto al T3 (que ya cubre EXCERPT_EDESUR).
+EXCERPT_EDESUR_RES = """
+Liquidación de Servicios Públicos (LSP) B 0501-76789794 18
+Cliente: 04538667
+BAMBIC GISELA SOLEDAD
+COSQUIN 4980 1 B
+CAPITAL FEDERAL
+Tarifa T1 R Residencial 1 M
+edesur.com.ar
+Detalle de Consumo                Detalle de su liquidación (equivalente a 134 kWh en 28 días)
+Estado actual al 21/03/2026 (Real)   025852
+Estado anterior al 21/02/2026        025718
+Energía Consumida 134 kWh
+"""
+
+# ENERSA (Entre Ríos) — Gran Usuario T3 con tabla histórica 13 meses
+EXCERPT_ENERSA = """
+LIQUIDACION DE SERVICIOS PUBLICOS CLASE A-17 Nro 8811241
+Sede Social: Buenos Aires 87 (E3100BQA) Paraná Entre Ríos
+enersa.com.ar
+enersagrandesclientes@enersa.com.ar
+TITULAR: FRIGORIFICO ARGENTINA ALIMENTOS, S.A.
+CUIT: 30-71860060-6
+Nº de ID: 750471001
+AÑO      MES.      TARIFA
+2025       12     Tarifa 3 - G.D. Vinc. Inf. BT
+
+Energía y Potencia Registrada
+   Período              Csmo(kWh)                    Pot. Punta(kW)     Pot. Fuera Punta(kW)
+    12/24                       700                               11                      98
+    01/25                     2.000                               11                      38
+    02/25                    28.700                              102                     143
+    03/25                    44.600                              103                     136
+    04/25                    42.600                               99                     134
+    05/25                    45.400                              110                     145
+    06/25                    41.100                              104                     137
+    07/25                    43.400                               94                     135
+    08/25                    45.000                              110                     146        Total Factura
+    09/25                    44.100                              105                     136
+    10/25                    49.700                              138                     139
+    11/25                    47.600                              100                     140
+    12/25                    58.400                              148                     145
 """
 
 # EPEC stub — excerpt simulado del layout de la factura escaneada
@@ -164,6 +215,15 @@ def test_deteccion_pampa():
     assert detectar(EXCERPT_PAMPA) == "PAMPA"
 
 
+def test_deteccion_enersa():
+    assert detectar(EXCERPT_ENERSA) == "ENERSA"
+
+
+def test_deteccion_edesur_residencial():
+    """El layout T1 residencial debe seguir detectándose como EDESUR."""
+    assert detectar(EXCERPT_EDESUR_RES) == "EDESUR"
+
+
 def test_deteccion_epec():
     assert detectar(EXCERPT_EPEC) == "EPEC"
 
@@ -227,14 +287,55 @@ def test_parser_eden():
     assert fac.fuente == "parser:EDEN"
 
 
-def test_parser_edenor():
+def test_parser_edenor_t1_residencial():
+    """Calibrado contra factura real LSP 0027-32228380 (Cuenta 4 682 960 084)."""
     fac = get_parser("EDENOR")(EXCERPT_EDENOR)
     assert fac is not None
     assert fac.distribuidora == "EDENOR"
-    assert fac.nis == "12345678"
-    assert fac.potencia_contratada_kw == 150.0
-    assert len(fac.consumos) == 2
-    assert fac.consumos[0].kwh_total == 35000
+    # Espacios cada 3 dígitos se eliminan en el NIS canónico
+    assert fac.nis == "4682960084"
+    assert fac.titular == "SANGUINA ELSA GRACIELA"
+    assert fac.categoria_tarifaria == "T1-R1"
+    assert fac.tension_suministro == "BT 220V"
+    assert len(fac.consumos) == 1
+    assert fac.consumos[0].mes == "2026-05"
+    assert fac.consumos[0].kwh_total == 118
+    assert fac.fuente == "parser:EDENOR"
+
+
+def test_parser_edesur_residencial():
+    """T1 residencial: extrae 1 mes desde 'Estado actual al' + 'equivalente a XXX kWh'."""
+    fac = get_parser("EDESUR")(EXCERPT_EDESUR_RES)
+    assert fac is not None
+    assert fac.distribuidora == "EDESUR"
+    assert fac.nis == "04538667"
+    assert fac.categoria_tarifaria.startswith("T1")
+    assert fac.tension_suministro.startswith("BT 220V")
+    assert len(fac.consumos) == 1
+    assert fac.consumos[0].mes == "2026-03"
+    assert fac.consumos[0].kwh_total == 134
+
+
+def test_parser_enersa():
+    fac = get_parser("ENERSA")(EXCERPT_ENERSA)
+    assert fac is not None
+    assert fac.distribuidora == "ENERSA"
+    assert fac.nis == "750471001"
+    assert fac.titular == "FRIGORIFICO ARGENTINA ALIMENTOS, S.A."
+    assert fac.categoria_tarifaria.startswith("T3")
+    # 13 meses en la tabla histórica (12/24 a 12/25)
+    assert len(fac.consumos) == 13
+    assert fac.consumos[0].mes == "2024-12"
+    assert fac.consumos[0].kwh_total == 700
+    assert fac.consumos[-1].mes == "2025-12"
+    assert fac.consumos[-1].kwh_total == 58400
+    # Mes con texto extra al final (Total Factura...) — el parser no debe perderlo
+    agosto = next(c for c in fac.consumos if c.mes == "2025-08")
+    assert agosto.kwh_total == 45000
+    assert agosto.potencia_pico_kw == 146   # max(110, 146)
+    # Potencia contratada = pico máximo (148 kW en dic-25)
+    assert fac.potencia_contratada_kw == 148.0
+    assert fac.fuente == "parser:ENERSA"
 
 
 def test_parser_pampa():
@@ -333,7 +434,8 @@ def test_parse_num_ar():
 
 def test_distribuidoras_soportadas():
     soportadas = set(distribuidoras_soportadas())
-    assert {"EDEN", "EDENOR", "EDESA", "EDESUR", "PAMPA", "EPEC", "CAMMESA"}.issubset(soportadas)
+    assert {"EDEN", "EDENOR", "EDESA", "EDESUR", "ENERSA",
+            "PAMPA", "EPEC", "CAMMESA"}.issubset(soportadas)
 
 
 def test_merge_facturas():

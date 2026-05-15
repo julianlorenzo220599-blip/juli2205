@@ -49,16 +49,18 @@ py -m rv_propuestas.cli desde-factura `
 
 | Distribuidora | Cobertura                       | Estado |
 |---|---|---|
-| EDESUR        | CABA + GBA Sur                  | ✓ T3 BT/MT con tabla histórica 6 meses |
+| EDESUR        | CABA + GBA Sur                  | ✓ T3 grandes clientes (tabla 6 meses) + T1 residencial |
 | EDESA         | Salta                           | ✓ T1/T2/T3 mensual |
 | EDEN          | Norte Pcia. Bs As (Junín, S.N.) | ✓ T1RM mensual |
-| EDENOR        | CABA + GBA Norte                | ⚠ esqueleto genérico — validar con PDF real |
+| EDENOR        | CABA + GBA Norte                | ✓ T1-R1 residencial (Cuenta XXX XXX XXX) — calibrado con PDF real |
+| ENERSA        | Entre Ríos (GU industrial)      | ✓ T3 con tabla histórica 13 meses + potencias punta/fuera-punta |
 | EPEC          | Córdoba (T3 MT/AT)              | ⚠ stub inferido de factura escaneada — calibrar con PDF real |
 | PAMPA         | Mercado a Término (GU)          | ✓ Energía contratada MATE — combinar con factura de distribución local |
 | CAMMESA       | Mercado Eléctrico Mayorista     | ⚠ stub — solo aporta potencia, no kWh (combinar con distribuidora) |
 
-Las demás (EDEA, EPEC, EDET, EDEMSA, EJESA, cooperativas) usan automáticamente
-el fallback LLM si está disponible.
+Las demás (EDEA, EDET, EDEMSA, EJESA, cooperativas) usan automáticamente
+el fallback LLM si está disponible. PDFs escaneados (sin texto extraíble por
+pypdf/pdftotext) caen al modo Vision del LLM con el PDF adjunto directo.
 
 ### Fallback LLM (Claude API)
 
@@ -191,11 +193,12 @@ rv_propuestas/
 │   │   ├── interactivo.py     # Fallback CSV manual
 │   │   ├── util.py            # parse_num_ar (formato AR)
 │   │   └── parsers/           # Plugins por distribuidora (auto-registro)
-│   │       ├── edenor.py
-│   │       ├── edesur.py
-│   │       ├── edesa.py
-│   │       ├── eden.py
-│   │       ├── epec.py      # Córdoba (T3 MT/AT)
+│   │       ├── edenor.py    # CABA + GBA Norte (T1-R1 residencial)
+│   │       ├── edesur.py    # CABA + GBA Sur (T1 res + T3 GU)
+│   │       ├── edesa.py     # Salta
+│   │       ├── eden.py      # Norte Pcia. Bs As
+│   │       ├── enersa.py    # Entre Ríos (T3 GU industrial)
+│   │       ├── epec.py      # Córdoba (T3 MT/AT) — stub
 │   │       ├── pampa.py     # MATE — Grandes Usuarios (Pampa Energía SA)
 │   │       └── cammesa.py   # Mercado Eléctrico Mayorista (potencia GU)
 │   ├── ubicacion.py           # PVGIS API + estimación offline
@@ -220,7 +223,7 @@ data/
 
 tests/
 ├── test_smoke.py              # 4 casos pipeline end-to-end (30 kW / 250 kW / 1 MW / 3 MW)
-├── test_facturas.py           # 23 tests: detección + parsers + validación
+├── test_facturas.py           # 27 tests: detección + parsers + validación
 ├── test_template.py           # 15 tests: filtros, sustitución, persistencia .pptx
 ├── test_precios.py            # 7 tests: integridad SKU/precio del catálogo
 ├── test_pvsyst.py             # 14 tests: parser CSV + memo + comparador
@@ -383,7 +386,7 @@ pasarlo con `--precios data/precios.yaml`.
 1. **Validar BoS estimados** con cotizaciones reales de RV (cables, trafos,
    MO eléctrica, ingeniería).
 2. **Sumar parsers**: EDEA, EDET, EDEMSA, EJESA — esperar PDFs reales.
-3. **Calibrar stubs**: EDENOR, EPEC, CAMMESA con PDFs reales.
+3. **Calibrar stubs**: EPEC, CAMMESA con PDFs reales (EDENOR ya calibrado).
 4. **Obtener CLICKUP_LIST_ID** de la lista de propuestas en producción.
 
 ## Notas de entorno

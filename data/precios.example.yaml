@@ -62,6 +62,13 @@ electrico:
   TAB-DC: 480.00
   TAB-AC: 650.00
   PAT-MALLA: 1200.00
+  # Referencia FREMTEC (instalador terciarizado residencial, abril 2026):
+  #   6/8 paneles  → USD 1000 instalación + USD 1000 materiales (mono o 3F)
+  #   8/12 paneles → USD 1200 + USD 1200
+  #   12/18 paneles → USD 1400 + USD 1200
+  #   ≈ USD 200-350/kWp para residencial (<13 kWp)
+  # Mantenemos MO-ELEC en USD/kWp para EPC industrial (50 USD/kWp).
+  # Si el target es residencial, considerar usar precios FREMTEC por panel-count.
   TRAFO-100: 4500.00
   TRAFO-150: 6200.00
   TRAFO-200: 7800.00
