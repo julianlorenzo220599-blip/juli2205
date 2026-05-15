@@ -193,7 +193,13 @@ def insertar_charts(prs, *, factura=None, sizing=None) -> int:
     placeholder y sabrá que faltó info).
     """
     from pptx.chart.data import CategoryChartData
-    from pptx.enum.chart import XL_CHART_TYPE
+    from pptx.dml.color import RGBColor
+    from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
+
+    # Paleta de marca RV (Manual oct/2025) aplicada a los charts
+    AZUL_LOGO = RGBColor(0x1B, 0x39, 0xCE)
+    VERDE_LIME = RGBColor(0xA6, 0xFF, 0x00)
+    GRIS_NEUTRO = RGBColor(0xC8, 0xC2, 0xB5)
 
     # Recopilamos primero (no podemos modificar el slide mientras iteramos shapes).
     markers: list[tuple] = []
@@ -211,45 +217,57 @@ def insertar_charts(prs, *, factura=None, sizing=None) -> int:
     count = 0
     for slide, shape, key in markers:
         left, top, width, height = shape.left, shape.top, shape.width, shape.height
-        creo_chart = False
+        chart_obj = None
 
         if key == "consumo_mensual" and factura and len(factura.consumos) >= 3:
             data = CategoryChartData()
             data.categories = [c.mes for c in factura.consumos]
             data.add_series("kWh consumidos", [c.kwh_total for c in factura.consumos])
-            slide.shapes.add_chart(
+            chart_obj = slide.shapes.add_chart(
                 XL_CHART_TYPE.COLUMN_CLUSTERED, left, top, width, height, data,
-            )
-            creo_chart = True
+            ).chart
+            _aplicar_paleta_chart(chart_obj, [AZUL_LOGO])
 
         elif key == "cobertura" and sizing:
             cob = max(0.0, min(float(sizing.cobertura), 1.0))
             data = CategoryChartData()
             data.categories = ["Solar", "Red eléctrica"]
             data.add_series("Origen energía", [cob, 1 - cob])
-            slide.shapes.add_chart(
-                XL_CHART_TYPE.PIE, left, top, width, height, data,
-            )
-            creo_chart = True
+            chart_obj = slide.shapes.add_chart(
+                XL_CHART_TYPE.DOUGHNUT, left, top, width, height, data,
+            ).chart
+            _aplicar_paleta_chart(chart_obj, [VERDE_LIME, GRIS_NEUTRO])
 
         elif key == "generacion_vs_consumo" and factura and sizing and factura.consumos:
             data = CategoryChartData()
             data.categories = [c.mes for c in factura.consumos]
             data.add_series("Consumo", [c.kwh_total for c in factura.consumos])
-            # Distribución de generación: usa hsp_mensual si está, sino reparto plano
             gen_mensual = _generacion_por_mes(sizing, factura.consumos)
             data.add_series("Generación estimada", gen_mensual)
-            slide.shapes.add_chart(
+            chart_obj = slide.shapes.add_chart(
                 XL_CHART_TYPE.COLUMN_CLUSTERED, left, top, width, height, data,
-            )
-            creo_chart = True
+            ).chart
+            _aplicar_paleta_chart(chart_obj, [GRIS_NEUTRO, VERDE_LIME])
+            chart_obj.has_legend = True
+            chart_obj.legend.position = XL_LEGEND_POSITION.BOTTOM
+            chart_obj.legend.include_in_layout = False
 
-        if creo_chart:
-            # Eliminar el shape marker — el chart ocupa su lugar.
+        if chart_obj is not None:
             shape._element.getparent().remove(shape._element)
             count += 1
 
     return count
+
+
+def _aplicar_paleta_chart(chart, colores: list) -> None:
+    """Pinta cada serie con un color de la paleta de marca; sin borde para look limpio."""
+    for i, serie in enumerate(chart.series):
+        color = colores[i % len(colores)]
+        fill = serie.format.fill
+        fill.solid()
+        fill.fore_color.rgb = color
+        line = serie.format.line
+        line.fill.background()
 
 
 def _generacion_por_mes(sizing, consumos: list) -> list[float]:

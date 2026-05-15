@@ -1,25 +1,22 @@
-"""Generador de template `.pptx` base con identidad de marca RV Energía (oct 2025).
+"""Generador de template `.pptx` base — versión minimalista con identidad RV.
 
-Aplica el Manual de Marca RV Energía:
+Diseño focal:
+  - Fondo crema/marfil neutro (descansa la vista, lujoso, no satura).
+  - Acentos cromáticos sólo de los colores del logo: verde lime + azul.
+  - Líneas finas como separadores, KPIs sin caja, mucho espacio negativo.
+  - Tipografía Outfit Light dominante; Bold sólo para enfatizar.
 
-  PALETA PRIMARIA
-    Verde lime    #A6FF00  (RGB 166/255/0)   — acento, números, último-palabra titles
-    Azul corporativo #1B39CE (RGB 27/57/206) — fondos de sección, énfasis
+Paleta (Manual de Marca RV oct/2025):
+  Crema                #FAF7F0  — fondo principal
+  Blanco hueso         #FCFAF5  — fondo alterno (slides "respiro")
+  Azul oscuro          #1A1F3A  — texto principal
+  Gris cálido          #6E6A60  — body / bajadas
+  Gris suave           #C8C2B5  — líneas separadoras
+  Verde lime           #A6FF00  — acento (números, dots, underlines)
+  Azul corporativo     #1B39CE  — títulos, énfasis, líneas activas
 
-  PALETA SECUNDARIA
-    Negro         #000000   — fondos de portada / cover de sección
-    Negro suave   #1A1A1A   — variantes
-    Blanco        #FFFFFF   — texto sobre fondos oscuros
-    Gris claro    #F2F2F2   — fondos secundarios
-    Gris medio    #7A7A7A   — bajadas, body text
-
-  TIPOGRAFÍA
-    Outfit (Bold + Light) — títulos combinan Light + última palabra Bold
-    Si el cliente no tiene Outfit instalada, PowerPoint hace fallback a Calibri.
-
-  ESTRUCTURA
-    Portada → Contenidos → [Sección oscura + Slides claras]× → Cierre
-    Logo positivo en slides claras, negativo en slides oscuras/azules.
+Los logos positivo y negativo del manual están en ./assets/. Como el fondo
+crema es claro, usamos el logo positivo en todas las slides.
 """
 from __future__ import annotations
 
@@ -33,26 +30,23 @@ from pptx.util import Inches, Pt
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# IDENTIDAD DE MARCA RV (Manual oct 2025)
+# PALETA — minimalista, fondo crema + acentos del logo
 # ──────────────────────────────────────────────────────────────────────────────
-VERDE_LIME = RGBColor(0xA6, 0xFF, 0x00)
-AZUL = RGBColor(0x1B, 0x39, 0xCE)
-NEGRO = RGBColor(0x00, 0x00, 0x00)
-NEGRO_SUAVE = RGBColor(0x1A, 0x1A, 0x1A)
-BLANCO = RGBColor(0xFF, 0xFF, 0xFF)
-GRIS_CLARO = RGBColor(0xF2, 0xF2, 0xF2)
-GRIS_MEDIO = RGBColor(0x7A, 0x7A, 0x7A)
-GRIS_OSCURO = RGBColor(0x33, 0x33, 0x33)
+CREMA = RGBColor(0xFA, 0xF7, 0xF0)
+BLANCO_HUESO = RGBColor(0xFC, 0xFA, 0xF5)
+AZUL_OSCURO = RGBColor(0x1A, 0x1F, 0x3A)          # texto principal
+GRIS_CALIDO = RGBColor(0x6E, 0x6A, 0x60)          # bajadas
+GRIS_SUAVE = RGBColor(0xC8, 0xC2, 0xB5)           # líneas separadoras
+VERDE_LIME = RGBColor(0xA6, 0xFF, 0x00)           # acento logo
+AZUL_LOGO = RGBColor(0x1B, 0x39, 0xCE)            # acento logo
 
 FUENTE = "Outfit"
 
 _ASSETS = Path(__file__).parent / "assets"
-LOGO_POSITIVO = _ASSETS / "logo_rv_positivo.png"   # para slides claras
-LOGO_NEGATIVO = _ASSETS / "logo_rv_negativo.png"   # para slides oscuras/azules
+LOGO_POSITIVO = _ASSETS / "logo_rv_positivo.png"
 
 
 def crear_template_base(output_path: str | Path) -> Path:
-    """Genera el `.pptx` corporativo siguiendo el Manual de Marca RV oct/2025."""
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -63,13 +57,10 @@ def crear_template_base(output_path: str | Path) -> Path:
 
     _slide_portada(prs.slides.add_slide(blank))
     _slide_contenidos(prs.slides.add_slide(blank))
-    _slide_seccion(prs.slides.add_slide(blank), "01", "Análisis del", "consumo.")
     _slide_analisis_consumo(prs.slides.add_slide(blank))
     _slide_historico_consumo(prs.slides.add_slide(blank))
-    _slide_seccion(prs.slides.add_slide(blank), "02", "Solución", "técnica.")
     _slide_solucion(prs.slides.add_slide(blank))
     _slide_generacion_vs_consumo(prs.slides.add_slide(blank))
-    _slide_seccion(prs.slides.add_slide(blank), "03", "Inversión y", "próximos pasos.")
     _slide_inversion(prs.slides.add_slide(blank))
     _slide_proximos_pasos(prs.slides.add_slide(blank))
 
@@ -81,207 +72,191 @@ def crear_template_base(output_path: str | Path) -> Path:
 # SLIDES
 # ──────────────────────────────────────────────────────────────────────────────
 def _slide_portada(slide):
-    _fondo(slide, NEGRO)
-    _logo(slide, "negativo", left=0.5, top=0.4, height=0.9)
-    _chip(slide, "2025", left=0.5, top=2.6)
-    # Título estilo manual: "Propuesta técnica." con palabra final en lime
-    _titulo_dual(
-        slide,
-        "Propuesta", "técnica.",
-        left=0.5, top=3.2,
-        size=80, color1=BLANCO, color2=VERDE_LIME,
-    )
-    _texto(slide, "{{kwp|kwp}}  ·  {{cliente}}",
-           left=0.5, top=5.6, width=12, size=22, color=BLANCO, bold=False)
-    _texto(slide, "Proyecto: {{proyecto}}  ·  {{fecha}}",
-           left=0.5, top=6.2, width=12, size=14, color=GRIS_MEDIO)
+    _fondo(slide, CREMA)
+    _logo(slide, left=0.7, top=0.6, height=0.9)
 
-    # Glow azul radial decorativo (rectángulo con tinte)
-    _rectangulo(slide, left=9.0, top=0, width=4.5, height=4.5,
-                fill=AZUL, line=AZUL, alpha=True)
+    # Acento mínimo: línea fina verde lime arriba
+    _linea(slide, left=0.7, top=2.0, width=1.2, color=VERDE_LIME, weight=2.5)
+
+    _texto(slide, "PROPUESTA TÉCNICO-ECONÓMICA",
+           left=0.7, top=2.3, width=12, size=12,
+           color=GRIS_CALIDO, bold=True, letter_spacing=2)
+
+    # Título grande Light + última palabra acento
+    _titulo_dual(slide, "Planta solar", "fotovoltaica.",
+                 left=0.7, top=2.9, size=64,
+                 color1=AZUL_OSCURO, color2=AZUL_LOGO, bold2=False)
+
+    # Datos clave en línea, separados por punto medio
+    _texto(slide, "{{kwp|kwp}}    ·    {{cliente}}",
+           left=0.7, top=5.2, width=12, size=24,
+           color=AZUL_OSCURO, bold=False)
+    _texto(slide, "{{proyecto}}",
+           left=0.7, top=5.9, width=12, size=16, color=GRIS_CALIDO)
+
+    # Línea fina inferior + fecha
+    _linea(slide, left=0.7, top=6.85, width=2.0, color=AZUL_LOGO, weight=1)
+    _texto(slide, "{{fecha}}",
+           left=0.7, top=6.95, width=12, size=11, color=GRIS_CALIDO,
+           letter_spacing=2)
 
 
 def _slide_contenidos(slide):
-    _fondo(slide, AZUL)
-    _logo(slide, "negativo", left=11.5, top=0.4, height=0.7)
-    _titulo(slide, "Contenidos.", left=0.5, top=0.6, color=BLANCO, size=52)
-    bar = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, Inches(0.5), Inches(1.7), Inches(1.0), Inches(0.06),
-    )
-    bar.fill.solid()
-    bar.fill.fore_color.rgb = VERDE_LIME
-    bar.line.fill.background()
+    _fondo(slide, CREMA)
+    _logo(slide, left=11.5, top=0.5, height=0.55)
+
+    _texto(slide, "ÍNDICE",
+           left=0.7, top=0.7, width=10, size=11,
+           color=GRIS_CALIDO, bold=True, letter_spacing=3)
+    _titulo_dual(slide, "Lo que vas a", "ver.",
+                 left=0.7, top=1.1, size=48,
+                 color1=AZUL_OSCURO, color2=AZUL_LOGO)
 
     items = [
         ("01", "Análisis del consumo"),
         ("02", "Solución técnica propuesta"),
         ("03", "Generación esperada"),
-        ("04", "Inversión"),
+        ("04", "Inversión y condiciones"),
         ("05", "Próximos pasos"),
     ]
     for i, (num, txt) in enumerate(items):
-        y = 2.6 + i * 0.7
-        _texto(slide, num, left=0.7, top=y, width=0.8, size=22,
+        y = 2.9 + i * 0.75
+        # Línea fina divisoria
+        _linea(slide, left=0.7, top=y - 0.1, width=12.0,
+               color=GRIS_SUAVE, weight=0.5)
+        _texto(slide, num, left=0.7, top=y, width=1.0, size=18,
                bold=True, color=VERDE_LIME)
-        _texto(slide, "/", left=1.5, top=y + 0.05, width=0.3, size=20,
-               color=BLANCO)
-        _texto(slide, txt, left=2.0, top=y, width=10, size=20,
-               color=BLANCO)
-
-
-def _slide_seccion(slide, numero: str, parte1: str, parte2: str):
-    """Slide separadora de sección estilo '01 Logotipo.' del manual."""
-    _fondo(slide, NEGRO)
-    _logo(slide, "negativo", left=0.5, top=0.4, height=0.9)
-    _chip(slide, "2025", left=0.5, top=2.6)
-    _texto(slide, numero, left=0.5, top=3.4, width=2.5,
-           size=96, bold=True, color=VERDE_LIME)
-    _titulo_dual(
-        slide, parte1, parte2,
-        left=3.0, top=3.6,
-        size=72, color1=BLANCO, color2=BLANCO, bold2=True,
-    )
+        _texto(slide, txt, left=2.0, top=y + 0.03, width=10, size=18,
+               color=AZUL_OSCURO)
 
 
 def _slide_analisis_consumo(slide):
-    _fondo(slide, BLANCO)
-    _logo(slide, "positivo", left=11.5, top=0.4, height=0.7)
-    _titulo_dual(slide, "Análisis del", "consumo.",
-                 left=0.5, top=0.5, size=38,
-                 color1=GRIS_OSCURO, color2=AZUL, bold2=True)
-    _barra_inferior(slide)
+    _fondo(slide, CREMA)
+    _header(slide, "01", "Análisis del", "consumo.")
 
-    _kpi(slide, 0.5, 1.8, "Cliente",        "{{cliente}}")
-    _kpi(slide, 3.8, 1.8, "Distribuidora",  "{{distribuidora}}")
-    _kpi(slide, 7.1, 1.8, "Categoría",      "{{categoria_tarifaria}}")
-    _kpi(slide, 10.4, 1.8, "NIS",           "{{nis}}", size_value=18)
+    _kpi_min(slide, 0.7, 2.3,  "Cliente",            "{{cliente}}",          size_value=18)
+    _kpi_min(slide, 4.0, 2.3,  "Distribuidora",      "{{distribuidora}}",    size_value=18)
+    _kpi_min(slide, 7.3, 2.3,  "Categoría tarifaria", "{{categoria_tarifaria}}", size_value=18)
+    _kpi_min(slide, 10.6, 2.3, "NIS",                "{{nis}}",              size_value=16)
 
-    _kpi(slide, 0.5, 3.8, "Consumo anual",       "{{consumo_anual|kwh}}",
-         accent=VERDE_LIME)
-    _kpi(slide, 3.8, 3.8, "Promedio mensual",    "{{consumo_mensual_promedio|kwh}}")
-    _kpi(slide, 7.1, 3.8, "Tensión",             "{{tension}}")
-    _kpi(slide, 10.4, 3.8, "Pot. contratada",    "{{potencia_contratada|0}} kW")
+    _kpi_min(slide, 0.7, 4.3,  "Consumo anual",      "{{consumo_anual|kwh}}",
+             accent=AZUL_LOGO, size_value=22)
+    _kpi_min(slide, 4.0, 4.3,  "Promedio mensual",   "{{consumo_mensual_promedio|kwh}}",
+             size_value=20)
+    _kpi_min(slide, 7.3, 4.3,  "Tensión",            "{{tension}}",          size_value=20)
+    _kpi_min(slide, 10.6, 4.3, "Pot. contratada",    "{{potencia_contratada|0}} kW",
+             size_value=20)
 
-    _texto(slide, "Domicilio del suministro: {{direccion}}",
-           left=0.5, top=6.0, width=12, size=12, color=GRIS_MEDIO)
+    _texto(slide, "DOMICILIO DEL SUMINISTRO",
+           left=0.7, top=6.3, width=12, size=10,
+           color=GRIS_CALIDO, bold=True, letter_spacing=2)
+    _texto(slide, "{{direccion}}",
+           left=0.7, top=6.6, width=12, size=13, color=AZUL_OSCURO)
 
 
 def _slide_historico_consumo(slide):
-    _fondo(slide, BLANCO)
-    _logo(slide, "positivo", left=11.5, top=0.4, height=0.7)
-    _titulo_dual(slide, "Histórico", "mensual.",
-                 left=0.5, top=0.5, size=38,
-                 color1=GRIS_OSCURO, color2=AZUL, bold2=True)
-    _barra_inferior(slide)
+    _fondo(slide, BLANCO_HUESO)
+    _header(slide, "02", "Histórico", "mensual.")
     _texto(slide,
-           "Consumos extraídos directamente de la factura del cliente.",
-           left=0.5, top=1.5, width=12, size=14, color=GRIS_MEDIO)
+           "Consumos extraídos de la factura del cliente — 12 meses.",
+           left=0.7, top=2.2, width=12, size=13, color=GRIS_CALIDO)
     _chart_marker(slide, "consumo_mensual",
-                  left=0.8, top=2.1, width=11.7, height=4.6)
+                  left=0.7, top=2.8, width=11.9, height=4.0)
 
 
 def _slide_solucion(slide):
-    _fondo(slide, BLANCO)
-    _logo(slide, "positivo", left=11.5, top=0.4, height=0.7)
-    _titulo_dual(slide, "Solución técnica", "propuesta.",
-                 left=0.5, top=0.5, size=36,
-                 color1=GRIS_OSCURO, color2=AZUL, bold2=True)
-    _barra_inferior(slide)
+    _fondo(slide, CREMA)
+    _header(slide, "03", "Solución técnica", "propuesta.")
 
-    _kpi(slide, 0.5, 1.8, "Potencia DC",      "{{kwp|kwp}}", accent=AZUL)
-    _kpi(slide, 3.8, 1.8, "Generación anual", "{{generacion_anual|kwh}}",
-         accent=VERDE_LIME)
-    _kpi(slide, 7.1, 1.8, "Cobertura",        "{{cobertura_pct|pct1}}")
-    _kpi(slide, 10.4, 1.8, "Yield",           "{{yield_especifico|0}} kWh/kWp")
+    _kpi_min(slide, 0.7, 2.3,  "Potencia DC",       "{{kwp|kwp}}",
+             accent=AZUL_LOGO, size_value=24)
+    _kpi_min(slide, 4.0, 2.3,  "Generación anual",  "{{generacion_anual|kwh}}",
+             accent=VERDE_LIME, size_value=22)
+    _kpi_min(slide, 7.3, 2.3,  "Cobertura",         "{{cobertura_pct|pct1}}",
+             size_value=22)
+    _kpi_min(slide, 10.6, 2.3, "Yield específico",  "{{yield_especifico|0}} kWh/kWp",
+             size_value=16)
 
-    _texto(slide, "Equipamiento principal",
-           left=0.5, top=3.9, width=12, size=18, bold=True, color=AZUL)
+    _texto(slide, "EQUIPAMIENTO PRINCIPAL",
+           left=0.7, top=4.4, width=12, size=10,
+           color=GRIS_CALIDO, bold=True, letter_spacing=2)
+    _linea(slide, left=0.7, top=4.7, width=12.0, color=GRIS_SUAVE, weight=0.5)
+
     bullets = [
         "{{n_paneles}} × módulos TCL TOPCon Bifacial {{wp_panel}} Wp",
         "{{n_inversores}} × {{inversor_descripcion}}",
-        "Smart meter trifásico GoodWe + estructura + balance of system",
+        "Smart meter GoodWe + estructura + balance of system completo",
         "Ingeniería, gestión ante {{distribuidora}}, puesta en marcha",
     ]
     for i, b in enumerate(bullets):
-        # Punto verde + texto
-        dot = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL,
-            Inches(0.55), Inches(4.5 + i * 0.45), Inches(0.15), Inches(0.15),
-        )
-        dot.fill.solid()
-        dot.fill.fore_color.rgb = VERDE_LIME
-        dot.line.fill.background()
-        _texto(slide, b, left=0.85, top=4.42 + i * 0.45,
-               width=12, size=14, color=GRIS_OSCURO)
-
-    _texto(slide,
-           "Garantías: 15 años producto · 30 años performance lineal · 10 años inversores",
-           left=0.5, top=6.5, width=12, size=11, color=GRIS_MEDIO)
+        y = 4.95 + i * 0.4
+        _bullet_dot(slide, left=0.75, top=y + 0.07, color=VERDE_LIME)
+        _texto(slide, b, left=1.05, top=y, width=12, size=14,
+               color=AZUL_OSCURO)
 
 
 def _slide_generacion_vs_consumo(slide):
-    _fondo(slide, BLANCO)
-    _logo(slide, "positivo", left=11.5, top=0.4, height=0.7)
-    _titulo_dual(slide, "Generación vs", "consumo.",
-                 left=0.5, top=0.5, size=36,
-                 color1=GRIS_OSCURO, color2=AZUL, bold2=True)
-    _barra_inferior(slide)
+    _fondo(slide, BLANCO_HUESO)
+    _header(slide, "04", "Generación vs", "consumo.")
     _texto(slide,
-           "Cobertura de {{cobertura_pct|pct1}} del consumo anual ({{consumo_anual|kwh}}) "
-           "con generación estimada de {{generacion_anual|kwh}}.",
-           left=0.5, top=1.6, width=12.5, size=13, color=GRIS_MEDIO)
+           "Cobertura de {{cobertura_pct|pct1}} sobre un consumo anual de "
+           "{{consumo_anual|kwh}}.",
+           left=0.7, top=2.2, width=12.5, size=13, color=GRIS_CALIDO)
     _chart_marker(slide, "generacion_vs_consumo",
-                  left=0.5, top=2.3, width=8.5, height=4.5)
+                  left=0.7, top=2.8, width=8.0, height=4.0)
     _chart_marker(slide, "cobertura",
-                  left=9.3, top=2.3, width=3.5, height=4.5)
+                  left=9.0, top=2.8, width=3.6, height=4.0)
 
 
 def _slide_inversion(slide):
-    _fondo(slide, BLANCO)
-    _logo(slide, "positivo", left=11.5, top=0.4, height=0.7)
-    _titulo_dual(slide, "Inversión llave", "en mano.",
-                 left=0.5, top=0.5, size=36,
-                 color1=GRIS_OSCURO, color2=AZUL, bold2=True)
-    _barra_inferior(slide)
+    _fondo(slide, CREMA)
+    _header(slide, "05", "Inversión", "llave en mano.")
 
-    _kpi(slide, 0.5, 1.8, "Subtotal (sin IVA)",   "{{neto_usd|usd}}")
-    _kpi(slide, 3.8, 1.8, "IVA diferencial",      "{{iva_usd|usd}}")
-    _kpi(slide, 7.1, 1.8, "TOTAL",                "{{total_usd|usd}}",
-         accent=VERDE_LIME, size_value=24)
-    _kpi(slide, 10.4, 1.8, "USD por kWp",         "{{usd_kwp|0}}")
+    # TOTAL destacado a la izquierda, sin caja
+    _texto(slide, "TOTAL DE LA INVERSIÓN",
+           left=0.7, top=2.3, width=8, size=11,
+           color=GRIS_CALIDO, bold=True, letter_spacing=2)
+    _texto(slide, "{{total_usd|usd}}",
+           left=0.7, top=2.7, width=8, size=64,
+           color=AZUL_LOGO, bold=False, height=1.2)
+    _linea(slide, left=0.7, top=3.95, width=4.0, color=VERDE_LIME, weight=3)
+    _texto(slide, "{{usd_kwp|0}} USD por kWp instalado",
+           left=0.7, top=4.1, width=8, size=14, color=GRIS_CALIDO)
 
-    _texto(slide, "Condiciones comerciales",
-           left=0.5, top=3.9, width=12, size=18, bold=True, color=AZUL)
+    # Desglose a la derecha
+    _texto(slide, "DESGLOSE",
+           left=9.0, top=2.3, width=4, size=11,
+           color=GRIS_CALIDO, bold=True, letter_spacing=2)
+    _kpi_inline(slide, 9.0, 2.7,  "Subtotal sin IVA", "{{neto_usd|usd}}")
+    _kpi_inline(slide, 9.0, 3.25, "IVA diferencial",   "{{iva_usd|usd}}")
+    _kpi_inline(slide, 9.0, 3.8,  "USD/kWp",           "{{usd_kwp|0}}")
+
+    # Condiciones al pie
+    _texto(slide, "CONDICIONES COMERCIALES",
+           left=0.7, top=5.1, width=12, size=10,
+           color=GRIS_CALIDO, bold=True, letter_spacing=2)
+    _linea(slide, left=0.7, top=5.4, width=12.0, color=GRIS_SUAVE, weight=0.5)
     cond = [
         "Validez de oferta: 30 días corridos",
-        "Forma de pago: 50% anticipo · 40% acopio · 10% PEM (negociable)",
-        "Plazo de ejecución: 60-90 días desde aprobación de proyecto",
-        "Incluye: ingeniería, materiales, instalación, gestión, puesta en marcha",
-        "Excluye: obra civil mayor y trámites municipales (cotizable aparte)",
+        "Forma de pago: 50% anticipo · 40% acopio · 10% PEM",
+        "Plazo de ejecución: 60-90 días desde aprobación",
+        "Incluye ingeniería, materiales, instalación, gestión y puesta en marcha",
     ]
     for i, c in enumerate(cond):
-        dot = slide.shapes.add_shape(
-            MSO_SHAPE.OVAL,
-            Inches(0.55), Inches(4.5 + i * 0.4), Inches(0.13), Inches(0.13),
-        )
-        dot.fill.solid()
-        dot.fill.fore_color.rgb = AZUL
-        dot.line.fill.background()
-        _texto(slide, c, left=0.85, top=4.42 + i * 0.4,
-               width=12, size=13, color=GRIS_OSCURO)
+        y = 5.6 + i * 0.34
+        _bullet_dot(slide, left=0.75, top=y + 0.06, color=AZUL_LOGO)
+        _texto(slide, c, left=1.05, top=y, width=12, size=12, color=AZUL_OSCURO)
 
 
 def _slide_proximos_pasos(slide):
-    _fondo(slide, AZUL)
-    _logo(slide, "negativo", left=11.5, top=0.4, height=0.7)
-    _titulo(slide, "Próximos pasos.", left=0.5, top=0.6,
-            color=BLANCO, size=48)
-    bar = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, Inches(0.5), Inches(1.6), Inches(1.0), Inches(0.06),
-    )
-    bar.fill.solid()
-    bar.fill.fore_color.rgb = VERDE_LIME
-    bar.line.fill.background()
+    _fondo(slide, CREMA)
+    _logo(slide, left=11.5, top=0.5, height=0.55)
+    _texto(slide, "CIERRE",
+           left=0.7, top=0.7, width=10, size=11,
+           color=GRIS_CALIDO, bold=True, letter_spacing=3)
+    _titulo_dual(slide, "Próximos", "pasos.",
+                 left=0.7, top=1.1, size=48,
+                 color1=AZUL_OSCURO, color2=AZUL_LOGO)
 
     pasos = [
         ("01", "Visita técnica al sitio y relevamiento del PDI"),
@@ -291,186 +266,168 @@ def _slide_proximos_pasos(slide):
         ("05", "Puesta en marcha, capacitación y entrega"),
     ]
     for i, (num, txt) in enumerate(pasos):
-        y = 2.3 + i * 0.65
-        _texto(slide, num, left=0.7, top=y, width=0.8, size=22,
+        y = 2.7 + i * 0.6
+        _linea(slide, left=0.7, top=y - 0.08, width=12.0,
+               color=GRIS_SUAVE, weight=0.5)
+        _texto(slide, num, left=0.7, top=y, width=1.0, size=16,
                bold=True, color=VERDE_LIME)
-        _texto(slide, txt, left=1.7, top=y, width=11, size=17,
-               color=BLANCO)
+        _texto(slide, txt, left=2.0, top=y + 0.03, width=11, size=15,
+               color=AZUL_OSCURO)
 
-    # Contacto al pie
-    _texto(slide, "Contacto",
-           left=0.5, top=6.0, width=4, size=14, bold=True, color=VERDE_LIME)
-    _texto(slide, "Julián Lorenzo  ·  Project Manager — Nuevos Negocios",
-           left=0.5, top=6.4, width=12, size=12, color=BLANCO)
-    _texto(slide, "julian.lorenzo@radiovictoria.com.ar  ·  +54 11 4407-6575",
-           left=0.5, top=6.7, width=12, size=12, color=BLANCO)
+    # Contacto al pie en una sola línea minimalista
+    _linea(slide, left=0.7, top=6.7, width=2.0, color=VERDE_LIME, weight=2)
+    _texto(slide, "Julián Lorenzo  ·  julian.lorenzo@radiovictoria.com.ar  ·  +54 11 4407-6575",
+           left=0.7, top=6.85, width=12.5, size=11, color=GRIS_CALIDO)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# HELPERS VISUALES (alineados con el manual de marca)
+# COMPONENTES VISUALES
 # ──────────────────────────────────────────────────────────────────────────────
+def _header(slide, num: str, parte1: str, parte2: str) -> None:
+    """Header común para slides de contenido: logo + número de sección + título dual."""
+    _logo(slide, left=11.5, top=0.5, height=0.55)
+    _texto(slide, num, left=0.7, top=0.7, width=1, size=11,
+           bold=True, color=VERDE_LIME, letter_spacing=3)
+    _texto(slide, "SECCIÓN", left=1.1, top=0.7, width=4, size=11,
+           color=GRIS_CALIDO, bold=True, letter_spacing=3)
+    _titulo_dual(slide, parte1, parte2,
+                 left=0.7, top=1.1, size=42,
+                 color1=AZUL_OSCURO, color2=AZUL_LOGO, bold2=False)
+    # Línea fina horizontal al final del header
+    _linea(slide, left=0.7, top=2.0, width=12.0, color=GRIS_SUAVE, weight=0.5)
+
+
 def _fondo(slide, color: RGBColor) -> None:
-    """Pinta el fondo del slide con un rectángulo full-bleed."""
     bg = slide.shapes.add_shape(
         MSO_SHAPE.RECTANGLE, 0, 0, Inches(13.33), Inches(7.5),
     )
     bg.fill.solid()
     bg.fill.fore_color.rgb = color
     bg.line.fill.background()
-    # Mover al fondo
     spTree = bg._element.getparent()
     spTree.remove(bg._element)
     spTree.insert(2, bg._element)
 
 
-def _logo(slide, variante: str, *, left: float, top: float, height: float) -> None:
-    """Inserta el logo de RV. `variante` = "positivo" (fondos claros) o "negativo"."""
-    path = LOGO_POSITIVO if variante == "positivo" else LOGO_NEGATIVO
-    if path.exists():
+def _logo(slide, *, left: float, top: float, height: float) -> None:
+    if LOGO_POSITIVO.exists():
         slide.shapes.add_picture(
-            str(path), Inches(left), Inches(top), height=Inches(height),
+            str(LOGO_POSITIVO), Inches(left), Inches(top),
+            height=Inches(height),
         )
 
 
-def _chip(slide, texto: str, *, left: float, top: float) -> None:
-    """Píldora con borde verde — usada en portadas (estilo manual)."""
-    shape = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE,
-        Inches(left), Inches(top), Inches(0.9), Inches(0.4),
+def _linea(slide, *, left: float, top: float, width: float,
+           color: RGBColor, weight: float = 1.0) -> None:
+    line = slide.shapes.add_connector(
+        1,  # straight line
+        Inches(left), Inches(top),
+        Inches(left + width), Inches(top),
     )
-    shape.fill.solid()
-    shape.fill.fore_color.rgb = NEGRO
-    shape.line.color.rgb = VERDE_LIME
-    shape.line.width = Pt(1.5)
-    tf = shape.text_frame
-    tf.margin_top = Inches(0.05)
-    tf.text = texto
-    p = tf.paragraphs[0]
-    p.alignment = PP_ALIGN.CENTER
-    _aplicar_fuente(p.runs[0], size=14, color=VERDE_LIME, bold=False)
+    line.line.color.rgb = color
+    line.line.width = Pt(weight)
 
 
-def _titulo(slide, texto: str, *, left: float, top: float,
-            color: RGBColor = AZUL, size: int = 40) -> None:
-    _texto(slide, texto, left=left, top=top, width=12.5,
-           size=size, bold=True, color=color, height=0.9)
+def _bullet_dot(slide, *, left: float, top: float,
+                color: RGBColor, size: float = 0.13) -> None:
+    dot = slide.shapes.add_shape(
+        MSO_SHAPE.OVAL,
+        Inches(left), Inches(top), Inches(size), Inches(size),
+    )
+    dot.fill.solid()
+    dot.fill.fore_color.rgb = color
+    dot.line.fill.background()
 
 
-def _titulo_dual(slide, parte1: str, parte2: str, *, left: float, top: float,
-                 size: int = 40, color1: RGBColor = GRIS_OSCURO,
-                 color2: RGBColor = AZUL, bold2: bool = True) -> None:
-    """Título con dos pesos/colores: 'Propuesta técnica.' donde 'técnica.' va resaltado."""
+def _texto(slide, texto: str, *, left: float, top: float, width: float = 6.0,
+           height: float = 0.5, size: int = 14, bold: bool = False,
+           color: RGBColor = AZUL_OSCURO, letter_spacing: int = 0) -> None:
     box = slide.shapes.add_textbox(
-        Inches(left), Inches(top), Inches(12.5), Inches(size * 0.025 + 0.4),
+        Inches(left), Inches(top), Inches(width), Inches(height),
     )
     tf = box.text_frame
     tf.word_wrap = True
+    tf.margin_left = Inches(0)
+    tf.margin_top = Inches(0)
     p = tf.paragraphs[0]
-    # Run 1 — Light, color1
+    r = p.add_run()
+    r.text = texto
+    _aplicar_fuente(r, size=size, color=color, bold=bold,
+                    letter_spacing=letter_spacing)
+
+
+def _titulo_dual(slide, parte1: str, parte2: str, *, left: float, top: float,
+                 size: int = 48, color1: RGBColor = AZUL_OSCURO,
+                 color2: RGBColor = AZUL_LOGO, bold2: bool = False) -> None:
+    """Título 'Light + Light' o 'Light + Bold' con palabra acento al final."""
+    box = slide.shapes.add_textbox(
+        Inches(left), Inches(top), Inches(12.5), Inches(size * 0.022 + 0.4),
+    )
+    tf = box.text_frame
+    tf.word_wrap = True
+    tf.margin_left = Inches(0)
+    p = tf.paragraphs[0]
     r1 = p.add_run()
     r1.text = parte1 + " "
     _aplicar_fuente(r1, size=size, color=color1, bold=False)
-    # Run 2 — Bold, color2 (palabra acento)
     r2 = p.add_run()
     r2.text = parte2
     _aplicar_fuente(r2, size=size, color=color2, bold=bold2)
 
 
-def _texto(slide, texto: str, *, left: float, top: float, width: float = 6.0,
-           height: float = 0.5, size: int = 14, bold: bool = False,
-           color: RGBColor = GRIS_OSCURO) -> None:
-    box = slide.shapes.add_textbox(
-        Inches(left), Inches(top), Inches(width), Inches(height),
-    )
-    tf = box.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    r = p.add_run()
-    r.text = texto
-    _aplicar_fuente(r, size=size, color=color, bold=bold)
+def _kpi_min(slide, left: float, top: float, label: str, value: str,
+             *, size_value: int = 22, accent: RGBColor = AZUL_OSCURO) -> None:
+    """KPI minimalista: label tiny en gris + valor grande Light + underline color accent."""
+    # Label en uppercase, tracking amplio
+    _texto(slide, label.upper(),
+           left=left, top=top, width=3.2, size=9,
+           color=GRIS_CALIDO, bold=True, letter_spacing=2)
+    # Underline fina
+    _linea(slide, left=left, top=top + 0.32,
+           width=0.5, color=GRIS_SUAVE, weight=0.5)
+    # Valor grande Light
+    _texto(slide, value,
+           left=left, top=top + 0.45, width=3.2, size=size_value,
+           color=accent, bold=False, height=0.8)
 
 
-def _kpi(slide, left: float, top: float, label: str, value: str,
-         *, size_value: int = 20, accent: RGBColor = AZUL) -> None:
-    """KPI tile estilo manual: caja blanca con borde sutil + label gris + valor en accent."""
-    shape = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE,
-        Inches(left), Inches(top), Inches(3.0), Inches(1.7),
-    )
-    shape.fill.solid()
-    shape.fill.fore_color.rgb = GRIS_CLARO
-    shape.line.color.rgb = accent
-    shape.line.width = Pt(1)
-
-    tf = shape.text_frame
-    tf.margin_left = Inches(0.2)
-    tf.margin_top = Inches(0.25)
-    tf.word_wrap = True
-
-    p1 = tf.paragraphs[0]
-    p1.text = label
-    r1 = p1.runs[0]
-    _aplicar_fuente(r1, size=10, color=GRIS_MEDIO, bold=True)
-
-    p2 = tf.add_paragraph()
-    r2 = p2.add_run()
-    r2.text = value
-    _aplicar_fuente(r2, size=size_value, color=accent, bold=True)
+def _kpi_inline(slide, left: float, top: float, label: str, value: str) -> None:
+    """KPI inline (label izq + valor der) para el desglose de inversión."""
+    _texto(slide, label, left=left, top=top, width=2.5, size=12,
+           color=GRIS_CALIDO)
+    _texto(slide, value, left=left + 1.8, top=top, width=2.5, size=14,
+           color=AZUL_OSCURO, bold=True)
 
 
 def _chart_marker(slide, key: str, *, left: float, top: float,
                   width: float, height: float) -> None:
-    shape = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        Inches(left), Inches(top), Inches(width), Inches(height),
+    """Placeholder minimalista para chart — solo línea fina superior + texto centrado."""
+    # Línea fina arriba
+    _linea(slide, left=left, top=top, width=width,
+           color=GRIS_SUAVE, weight=0.5)
+    # Texto del marker centrado
+    box = slide.shapes.add_textbox(
+        Inches(left), Inches(top + height / 2 - 0.2),
+        Inches(width), Inches(0.4),
     )
-    shape.fill.solid()
-    shape.fill.fore_color.rgb = GRIS_CLARO
-    shape.line.color.rgb = GRIS_MEDIO
-    shape.line.dash_style = 7  # dashed
-
-    tf = shape.text_frame
-    tf.word_wrap = True
-    tf.margin_top = Inches(height / 2 - 0.25)
-    tf.text = "{{chart:" + key + "}}"
+    tf = box.text_frame
     p = tf.paragraphs[0]
     p.alignment = PP_ALIGN.CENTER
-    _aplicar_fuente(p.runs[0], size=13, color=GRIS_MEDIO, bold=True)
+    r = p.add_run()
+    r.text = "{{chart:" + key + "}}"
+    _aplicar_fuente(r, size=12, color=GRIS_SUAVE, bold=True)
+    # Línea fina abajo
+    _linea(slide, left=left, top=top + height, width=width,
+           color=GRIS_SUAVE, weight=0.5)
 
 
-def _barra_inferior(slide) -> None:
-    """Barra horizontal azul al pie (decorativa, estilo manual)."""
-    bar = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        Inches(0.5), Inches(7.2), Inches(1.2), Inches(0.08),
-    )
-    bar.fill.solid()
-    bar.fill.fore_color.rgb = AZUL
-    bar.line.fill.background()
-
-
-def _rectangulo(slide, *, left: float, top: float, width: float, height: float,
-                fill: RGBColor, line: RGBColor, alpha: bool = False) -> None:
-    shape = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE,
-        Inches(left), Inches(top), Inches(width), Inches(height),
-    )
-    shape.fill.solid()
-    shape.fill.fore_color.rgb = fill
-    shape.line.color.rgb = line
-    shape.line.width = Pt(0)
-    if alpha:
-        # Opacidad 40% via XML — simulando efecto glow del manual
-        from pptx.oxml.ns import qn
-        sp = shape.fill.fore_color._xFill
-        srgb = sp.find(qn("a:srgbClr"))
-        if srgb is not None:
-            alpha_el = srgb.makeelement(qn("a:alpha"), {"val": "40000"})
-            srgb.append(alpha_el)
-
-
-def _aplicar_fuente(run, *, size: int, color: RGBColor, bold: bool) -> None:
+def _aplicar_fuente(run, *, size: int, color: RGBColor, bold: bool,
+                    letter_spacing: int = 0) -> None:
     run.font.name = FUENTE
     run.font.size = Pt(size)
     run.font.bold = bold
     run.font.color.rgb = color
+    if letter_spacing:
+        from pptx.oxml.ns import qn
+        rPr = run._r.get_or_add_rPr()
+        rPr.set("spc", str(letter_spacing * 100))

@@ -86,12 +86,12 @@ def cmd_crear_template_base(args) -> None:
     out = Path(args.output)
     crear_template_base(out)
     print(f"✓ Template base generado: {out}")
-    print("  • 11 slides con identidad RV (Manual de Marca oct 2025)")
-    print("  • Paleta: verde lime #A6FF00 + azul #1B39CE + neutros")
-    print("  • Tipografía Outfit (con fallback a Calibri si no está instalada)")
-    print("  • Logos positivo/negativo embebidos")
-    print("  • 23 placeholders {{...}} + 3 chart markers (consumo, gen vs consumo, cobertura)")
-    print("  • Abrí en PowerPoint y restyleá lo que necesites — los placeholders se rellenan al correr la pipeline")
+    print("  • 8 slides minimalistas (Manual de Marca RV oct 2025)")
+    print("  • Fondo crema #FAF7F0 + acentos verde lime #A6FF00 y azul #1B39CE")
+    print("  • Tipografía Outfit (fallback a Calibri si no está instalada)")
+    print("  • Logo positivo embebido · charts con paleta de marca")
+    print("  • Placeholders {{...}} + 3 chart markers (consumo, gen vs consumo, cobertura)")
+    print("  • Abrí en PowerPoint y ajustá lo que necesites — los placeholders se rellenan al correr la pipeline")
 
 
 def cmd_placeholders(args) -> None:
