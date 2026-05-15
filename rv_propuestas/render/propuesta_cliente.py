@@ -96,8 +96,13 @@ def render(
                 factura=factura, sizing=sizing, inv_cfg=inv_cfg, costeo=costeo,
                 cliente_nombre=cliente_nombre, proyecto_nombre=proyecto_nombre,
             )
-            n = _tpl.sustituir(prs, contexto)
-            print(f"✓ Plantilla: {n} placeholder(s) sustituido(s) en {Path(template_path).name}")
+            n_text = _tpl.sustituir(prs, contexto)
+            n_chart = _tpl.insertar_charts(prs, factura=factura, sizing=sizing)
+            extras = f" · {n_chart} chart(s)" if n_chart else ""
+            print(
+                f"✓ Plantilla: {n_text} placeholder(s){extras} aplicados "
+                f"en {Path(template_path).name}"
+            )
             prs.save(str(output_path))
             return output_path
         # Template sin placeholders: caemos al modo programático sobre su tema.

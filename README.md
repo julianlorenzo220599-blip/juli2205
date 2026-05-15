@@ -169,6 +169,35 @@ py -m rv_propuestas.cli desde-factura `
 | `{{cobertura_pct\|pct1}}` | `95.2%` |
 | `{{n_paneles}}` | `420` |
 
+### Charts dinámicos
+
+Además de placeholders de texto, el motor inyecta charts en marcadores
+`{{chart:KEY}}` (el diseñador pone un textbox/rectángulo con ese texto en
+la posición y tamaño donde quiere el gráfico):
+
+| Marcador | Tipo | Data |
+|---|---|---|
+| `{{chart:consumo_mensual}}` | Bar chart (columnas) | Consumos mensuales de la factura (≥3 meses) |
+| `{{chart:cobertura}}` | Pie chart | Solar vs Red según `sizing.cobertura` |
+| `{{chart:generacion_vs_consumo}}` | Bar chart 2-series | Consumo + Generación estimada (perfil estacional AR) |
+
+Si la factura tiene <3 meses (típico residencial), el marcador
+`consumo_mensual` se deja sin reemplazar — el comercial sabe que faltan
+datos.
+
+### Quickstart de template para el diseñador
+
+```powershell
+# 1. Generar el template base con TODOS los placeholders y chart markers
+py -m rv_propuestas.cli crear-template-base --output .\template_rv.pptx
+
+# 2. Abrir en PowerPoint → restyleá colores, logos, fuentes, fondos.
+#    Los placeholders `{{...}}` y `{{chart:...}}` quedan en su lugar.
+
+# 3. Validar antes de mandar a producción
+py -m rv_propuestas.cli placeholders --template .\template_rv.pptx -v
+```
+
 ### Claves disponibles
 
 **Cliente/proyecto**: `cliente`, `titular`, `proyecto`, `direccion`, `nis`, `fecha`, `anio`
@@ -245,7 +274,8 @@ rv_propuestas/
 └── render/
     ├── revision_interna.py    # Excel para Gabriel (con márgenes)
     ├── propuesta_cliente.py   # PPT cliente (sin márgenes)
-    └── template.py            # Motor de placeholders {{clave|filtro}} en .pptx
+    ├── template.py            # Motor placeholders {{...}} + charts {{chart:...}}
+    └── template_base.py       # Generador del template base 7 slides
 
 data/
 └── precios.example.yaml       # Catálogo de precios USD — editar con datos reales
@@ -253,7 +283,7 @@ data/
 tests/
 ├── test_smoke.py              # 4 casos pipeline end-to-end (30 kW / 250 kW / 1 MW / 3 MW)
 ├── test_facturas.py           # 27 tests: detección + parsers + validación
-├── test_template.py           # 15 tests: filtros, sustitución, persistencia .pptx
+├── test_template.py           # 24 tests: filtros, sustitución, charts, template base
 ├── test_precios.py            # 13 tests: integridad SKU/precio + kits + cables Slocable + ABB MT
 ├── test_pvsyst.py             # 14 tests: parser CSV + memo + comparador
 └── test_clickup.py            # 12 tests: payload, tags, HTTP mocks, attachments

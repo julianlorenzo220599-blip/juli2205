@@ -80,6 +80,17 @@ def cmd_desde_factura(args) -> None:
     )
 
 
+def cmd_crear_template_base(args) -> None:
+    """Genera template_base.pptx con todos los placeholders + chart markers."""
+    from .render.template_base import crear_template_base
+    out = Path(args.output)
+    crear_template_base(out)
+    print(f"✓ Template base generado: {out}")
+    print("  • 7 slides con KPIs + 3 chart markers (consumo, generación vs consumo, cobertura)")
+    print("  • Abrí en PowerPoint, restyleá colores/logos/fuentes y guardá")
+    print("  • Pasá el archivo restyleado con `--template` al CLI desde-factura")
+
+
 def cmd_placeholders(args) -> None:
     """Inspecciona un .pptx y lista los placeholders {{...}} que contiene.
 
@@ -87,28 +98,41 @@ def cmd_placeholders(args) -> None:
     pipeline. Compara contra el set de claves soportadas.
     """
     from pptx import Presentation
-    from .render.template import listar_placeholders, contexto_de_propuesta
+    from .render.template import listar_chart_markers, listar_placeholders
 
     prs = Presentation(args.template)
     detectados = listar_placeholders(prs)
-    if not detectados:
+    chart_markers = listar_chart_markers(prs)
+    if not detectados and not chart_markers:
         print(f"⚠ {args.template} no tiene placeholders {{...}} — modo programático")
         return
 
-    # Calculamos las claves soportadas creando un contexto vacío. Como la firma
-    # requiere objetos, usamos un dict de referencia hardcoded acá. Si se agregan
-    # claves nuevas en contexto_de_propuesta, se reflejan automáticamente.
     soportadas = _claves_soportadas()
-    print(f"Placeholders detectados en {args.template}:")
-    for k in sorted(detectados):
-        marker = "✓" if k in soportadas else "✗ DESCONOCIDO"
-        print(f"  {marker}  {{{{{k}}}}}")
+    soportados_charts = {"consumo_mensual", "cobertura", "generacion_vs_consumo"}
 
-    no_usados = soportadas - detectados
-    if no_usados and args.verbose:
-        print(f"\nDisponibles pero no usados ({len(no_usados)}):")
-        for k in sorted(no_usados):
-            print(f"     {{{{{k}}}}}")
+    if detectados:
+        print(f"Placeholders de texto detectados en {args.template}:")
+        for k in sorted(detectados):
+            marker = "✓" if k in soportadas else "✗ DESCONOCIDO"
+            print(f"  {marker}  {{{{{k}}}}}")
+
+    if chart_markers:
+        print(f"\nMarcadores de chart detectados:")
+        for k in sorted(chart_markers):
+            marker = "✓" if k in soportados_charts else "✗ DESCONOCIDO"
+            print(f"  {marker}  {{{{chart:{k}}}}}")
+
+    if args.verbose:
+        no_usados = soportadas - detectados
+        if no_usados:
+            print(f"\nClaves de texto disponibles pero no usadas ({len(no_usados)}):")
+            for k in sorted(no_usados):
+                print(f"     {{{{{k}}}}}")
+        charts_no_usados = soportados_charts - chart_markers
+        if charts_no_usados:
+            print(f"\nCharts disponibles pero no usados:")
+            for k in sorted(charts_no_usados):
+                print(f"     {{{{chart:{k}}}}}")
 
 
 def _claves_soportadas() -> set[str]:
@@ -194,6 +218,15 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_ph.add_argument("-v", "--verbose", action="store_true",
                       help="Mostrar también claves disponibles pero no usadas")
     p_ph.set_defaults(func=cmd_placeholders)
+
+    p_tb = sub.add_parser(
+        "crear-template-base",
+        help="Genera un .pptx base con todos los placeholders + chart markers, "
+             "como punto de partida para el diseñador",
+    )
+    p_tb.add_argument("--output", default="./template_base.pptx",
+                      help="Ruta del .pptx a crear")
+    p_tb.set_defaults(func=cmd_crear_template_base)
 
     args = parser.parse_args(argv)
     args.func(args)

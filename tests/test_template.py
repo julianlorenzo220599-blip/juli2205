@@ -7,6 +7,7 @@ el motor de sustitución y verifica el texto final. No requiere archivos
 from __future__ import annotations
 
 from io import BytesIO
+from pathlib import Path
 from types import SimpleNamespace
 
 from pptx import Presentation
@@ -14,11 +15,14 @@ from pptx.util import Inches
 
 from rv_propuestas.render.template import (
     contexto_de_propuesta,
+    insertar_charts,
+    listar_chart_markers,
     listar_placeholders,
     sustituir,
     tiene_placeholders,
 )
 from rv_propuestas.render.template import _formatear  # privado pero útil para tests
+from rv_propuestas.render.template_base import crear_template_base
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -198,8 +202,143 @@ def test_contexto_renderiza_en_template():
     sustituir(prs, ctx)
 
     assert _texto_de_slide(prs, 0) == "Cliente: ACME"
-    assert _texto_de_slide(prs, 1) == "Solución: 242,4 kWp con 334 paneles 725 Wp"
+    assert _texto_de_slide(prs, 1) == "Solución: 242,4 kWp con 334 paneles 720 Wp"
     assert "USD 145.073" in _texto_de_slide(prs, 2)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Template base + chart injection
+# ──────────────────────────────────────────────────────────────────────────────
+def _template_con_chart_marker(key: str) -> Presentation:
+    """Crea un .pptx con un textbox que contiene `{{chart:KEY}}` como marcador."""
+    prs = Presentation()
+    blank = prs.slide_layouts[6]
+    slide = prs.slides.add_slide(blank)
+    tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(4))
+    tb.text_frame.text = "{{chart:" + key + "}}"
+    return prs
+
+
+def test_listar_chart_markers_detecta_tipos():
+    prs = Presentation()
+    blank = prs.slide_layouts[6]
+    for key in ("consumo_mensual", "cobertura", "generacion_vs_consumo"):
+        s = prs.slides.add_slide(blank)
+        tb = s.shapes.add_textbox(Inches(1), Inches(1), Inches(8), Inches(3))
+        tb.text_frame.text = "{{chart:" + key + "}}"
+    detectados = listar_chart_markers(prs)
+    assert detectados == {"consumo_mensual", "cobertura", "generacion_vs_consumo"}
+
+
+def test_listar_placeholders_ignora_chart_markers():
+    """Los marcadores `{{chart:X}}` no deben aparecer en `listar_placeholders` —
+    son una sintaxis aparte."""
+    prs = _template_con_chart_marker("consumo_mensual")
+    assert listar_placeholders(prs) == set()
+
+
+def test_insertar_chart_consumo_mensual():
+    prs = _template_con_chart_marker("consumo_mensual")
+    factura = SimpleNamespace(
+        consumos=[
+            SimpleNamespace(mes=f"2025-{m:02d}", kwh_total=1000 + m * 100)
+            for m in range(1, 13)
+        ],
+    )
+    n = insertar_charts(prs, factura=factura, sizing=None)
+    assert n == 1
+    # Verificar que se agregó un chart al slide
+    slide = prs.slides[0]
+    charts = [sh for sh in slide.shapes if sh.has_chart]
+    assert len(charts) == 1
+    # Verificar que el marker desapareció
+    textos = [
+        "".join(r.text or "" for r in p.runs)
+        for sh in slide.shapes if sh.has_text_frame
+        for p in sh.text_frame.paragraphs
+    ]
+    assert not any("chart:consumo_mensual" in t for t in textos)
+
+
+def test_insertar_chart_cobertura_pie():
+    prs = _template_con_chart_marker("cobertura")
+    sizing = SimpleNamespace(cobertura=0.85, generacion_anual_kwh=100, kwp_real=10)
+    n = insertar_charts(prs, factura=None, sizing=sizing)
+    assert n == 1
+    slide = prs.slides[0]
+    assert sum(1 for sh in slide.shapes if sh.has_chart) == 1
+
+
+def test_insertar_chart_consumo_mensual_skip_si_pocos_meses():
+    """Con <3 meses no tiene sentido un histórico — debe dejar el marker."""
+    prs = _template_con_chart_marker("consumo_mensual")
+    factura = SimpleNamespace(
+        consumos=[SimpleNamespace(mes="2025-01", kwh_total=1000)],
+    )
+    n = insertar_charts(prs, factura=factura, sizing=None)
+    assert n == 0
+    slide = prs.slides[0]
+    assert sum(1 for sh in slide.shapes if sh.has_chart) == 0
+
+
+def test_insertar_chart_sin_datos_no_crashea():
+    """Si no se pasa factura/sizing, no debe inyectar nada y no debe lanzar."""
+    prs = _template_con_chart_marker("consumo_mensual")
+    n = insertar_charts(prs, factura=None, sizing=None)
+    assert n == 0
+
+
+def test_insertar_chart_generacion_vs_consumo():
+    prs = _template_con_chart_marker("generacion_vs_consumo")
+    factura = SimpleNamespace(
+        consumos=[
+            SimpleNamespace(mes=f"2025-{m:02d}", kwh_total=40000)
+            for m in range(1, 13)
+        ],
+    )
+    sizing = SimpleNamespace(
+        generacion_anual_kwh=456000, kwp_real=300, cobertura=0.95,
+    )
+    n = insertar_charts(prs, factura=factura, sizing=sizing)
+    assert n == 1
+
+
+def test_crear_template_base(tmp_path=None):
+    import tempfile
+    out = Path(tempfile.mkdtemp()) / "tb.pptx"
+    crear_template_base(out)
+    assert out.exists() and out.stat().st_size > 1000
+    prs = Presentation(out)
+    # 7 slides: portada, análisis, histórico, solución, gen vs consumo, inversión, próximos
+    assert len(prs.slides) == 7
+    # Placeholders esperados
+    ph = listar_placeholders(prs)
+    assert {"cliente", "kwp", "total_usd", "cobertura_pct"}.issubset(ph)
+    # 3 chart markers
+    assert listar_chart_markers(prs) == {
+        "consumo_mensual", "cobertura", "generacion_vs_consumo",
+    }
+
+
+def test_contexto_incluye_yield_y_topologia():
+    """contexto_de_propuesta debe exponer yield_especifico y topologia."""
+    factura = SimpleNamespace(
+        titular="X", distribuidora="EDESUR", categoria_tarifaria="T3",
+        tension_suministro="MT", potencia_contratada_kw=100,
+        consumo_anual_kwh=100000, consumo_mensual_promedio=8333,
+        direccion="—", nis="X",
+    )
+    sizing = SimpleNamespace(
+        kwp_real=100, n_paneles=140, generacion_anual_kwh=150000,
+        cobertura=0.95, topologia="MT_TRAFO",
+    )
+    inv = SimpleNamespace(cantidad=1, inversor=SimpleNamespace(sku="X", descripcion="X"))
+    costeo = SimpleNamespace(neto_cliente=100, iva_total=20, total_cliente=120)
+    ctx = contexto_de_propuesta(
+        factura=factura, sizing=sizing, inv_cfg=inv, costeo=costeo,
+    )
+    assert ctx["yield_especifico"] == 1500.0
+    assert ctx["topologia"] == "MT_TRAFO"
 
 
 if __name__ == "__main__":
