@@ -309,8 +309,9 @@ def test_crear_template_base(tmp_path=None):
     crear_template_base(out)
     assert out.exists() and out.stat().st_size > 1000
     prs = Presentation(out)
-    # 7 slides: portada, análisis, histórico, solución, gen vs consumo, inversión, próximos
-    assert len(prs.slides) == 7
+    # 11 slides: portada, contenidos, 3× cover sección, análisis, histórico,
+    # solución, gen vs consumo, inversión, próximos pasos
+    assert len(prs.slides) == 11
     # Placeholders esperados
     ph = listar_placeholders(prs)
     assert {"cliente", "kwp", "total_usd", "cobertura_pct"}.issubset(ph)

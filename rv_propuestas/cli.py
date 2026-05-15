@@ -81,14 +81,17 @@ def cmd_desde_factura(args) -> None:
 
 
 def cmd_crear_template_base(args) -> None:
-    """Genera template_base.pptx con todos los placeholders + chart markers."""
+    """Genera template_base.pptx con identidad de marca RV + chart markers."""
     from .render.template_base import crear_template_base
     out = Path(args.output)
     crear_template_base(out)
     print(f"✓ Template base generado: {out}")
-    print("  • 7 slides con KPIs + 3 chart markers (consumo, generación vs consumo, cobertura)")
-    print("  • Abrí en PowerPoint, restyleá colores/logos/fuentes y guardá")
-    print("  • Pasá el archivo restyleado con `--template` al CLI desde-factura")
+    print("  • 11 slides con identidad RV (Manual de Marca oct 2025)")
+    print("  • Paleta: verde lime #A6FF00 + azul #1B39CE + neutros")
+    print("  • Tipografía Outfit (con fallback a Calibri si no está instalada)")
+    print("  • Logos positivo/negativo embebidos")
+    print("  • 23 placeholders {{...}} + 3 chart markers (consumo, gen vs consumo, cobertura)")
+    print("  • Abrí en PowerPoint y restyleá lo que necesites — los placeholders se rellenan al correr la pipeline")
 
 
 def cmd_placeholders(args) -> None:
