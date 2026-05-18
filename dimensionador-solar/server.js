@@ -53,7 +53,7 @@ const server = http.createServer(async (req, res) => {
       const content = fs.readFileSync(filePath);
       res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'text/plain' });
       res.end(content);
-    } catch (e) {
+    } catch (_e) {
       res.writeHead(404);
       res.end('Archivo no encontrado');
     }

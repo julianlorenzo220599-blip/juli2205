@@ -1,0 +1,16 @@
+{
+  "name": "dimensionador-solar",
+  "version": "1.0.0",
+  "description": "Dimensionador solar de RV energia con proxy a la API de Anthropic",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test auth.test.js",
+    "test:auth": "node --test auth.test.js",
+    "lint": "eslint ."
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^9.39.4"
+  }
+}
