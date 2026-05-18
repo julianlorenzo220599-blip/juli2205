@@ -183,6 +183,37 @@ button{cursor:pointer;font-family:'Inter',sans-serif}
 .loading-pulse{animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
 .glow-text{background:linear-gradient(120deg,#FFFFFF 0%,var(--accent) 50%,var(--lime) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700}
+:root[data-theme="light"] .glow-text{background:linear-gradient(120deg,#0B1220 0%,#1E54E8 55%,#4F8A0F 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;text-shadow:none}
+:root[data-theme="light"] h1,:root[data-theme="light"] h2,:root[data-theme="light"] h3,:root[data-theme="light"] h4{color:#0B1220;font-weight:700}
+:root[data-theme="light"] .kit-stat-value,:root[data-theme="light"] .bill-value,:root[data-theme="light"] .roi-value,:root[data-theme="light"] .kit-name{color:#0B1220;font-weight:700}
+:root[data-theme="light"] .step-pill.active{box-shadow:0 4px 14px rgba(30,84,232,0.28),0 0 0 1px rgba(255,255,255,0.4) inset;color:#fff}
+:root[data-theme="light"] .step-pill.done{color:#4F8A0F;font-weight:600}
+:root[data-theme="light"] .step-pill.done::before{background:#84CC16;box-shadow:0 0 6px rgba(132,204,22,0.6)}
+:root[data-theme="light"] .badge{font-weight:700}
+:root[data-theme="light"] .badge-green{background:rgba(22,163,74,0.10);color:#15803D;border-color:rgba(22,163,74,0.30)}
+:root[data-theme="light"] .badge-blue,:root[data-theme="light"] .badge-accent{background:rgba(30,84,232,0.10);color:#1745CC;border-color:rgba(30,84,232,0.28)}
+:root[data-theme="light"] .badge-orange,:root[data-theme="light"] .badge-purple{background:rgba(180,83,9,0.08);color:#92400E;border-color:rgba(180,83,9,0.28)}
+:root[data-theme="light"] .badge-lime{background:rgba(132,204,22,0.14);color:#4F8A0F;border-color:rgba(132,204,22,0.40)}
+:root[data-theme="light"] .badge-gray{background:rgba(15,30,55,0.05);color:#5A6478;border-color:rgba(15,30,55,0.12)}
+:root[data-theme="light"] .btn-primary{color:#fff;box-shadow:0 4px 14px rgba(30,84,232,0.28),0 0 0 1px rgba(255,255,255,0.18) inset}
+:root[data-theme="light"] .btn-primary:hover{box-shadow:0 8px 22px rgba(30,84,232,0.38),0 0 0 1px rgba(255,255,255,0.25) inset}
+:root[data-theme="light"] .btn-secondary{background:#fff;border-color:#D6DBE5;color:#0B1220}
+:root[data-theme="light"] .btn-secondary:hover{background:#F4F6F9;border-color:#1E54E8;color:#1E54E8}
+:root[data-theme="light"] .btn-ghost{color:#5A6478}
+:root[data-theme="light"] .btn-ghost:hover{color:#0B1220;background:rgba(15,30,55,0.05)}
+:root[data-theme="light"] .card{box-shadow:0 1px 0 rgba(15,30,55,0.04),0 4px 16px rgba(15,30,55,0.05)}
+:root[data-theme="light"] .card:hover{border-color:#BDC4D2}
+:root[data-theme="light"] .mode-card.active{background:linear-gradient(180deg,rgba(30,84,232,0.08),#FFFFFF 60%);box-shadow:0 0 0 1px #1E54E8 inset,0 8px 24px rgba(30,84,232,0.12)}
+:root[data-theme="light"] .kit-card.recommended{box-shadow:0 1px 0 rgba(30,84,232,0.06),0 8px 28px rgba(30,84,232,0.10)}
+:root[data-theme="light"] .kit-card.robust{box-shadow:0 1px 0 rgba(132,204,22,0.08),0 8px 28px rgba(132,204,22,0.10)}
+:root[data-theme="light"] .ai-box{background:linear-gradient(135deg,rgba(30,84,232,0.06),rgba(132,204,22,0.05))}
+:root[data-theme="light"] .tab.active{background:#fff;box-shadow:0 1px 2px rgba(15,30,55,0.08),0 0 0 1px rgba(15,30,55,0.06)}
+:root[data-theme="light"] .battery-panel{background:linear-gradient(135deg,rgba(202,138,4,0.08),transparent);border-color:rgba(202,138,4,0.30)}
+:root[data-theme="light"] input[type=range]::-webkit-slider-thumb{border-color:#fff;box-shadow:0 0 0 4px rgba(30,84,232,0.18),0 1px 3px rgba(15,30,55,0.15)}
+:root[data-theme="light"] input[type=number],:root[data-theme="light"] input[type=text],:root[data-theme="light"] select{background:#fff;border-color:#D6DBE5;color:#0B1220}
+:root[data-theme="light"] input:focus,:root[data-theme="light"] select:focus{background:#fff;border-color:#1E54E8;box-shadow:0 0 0 3px rgba(30,84,232,0.15)}
+:root[data-theme="light"] .upload-zone{background:linear-gradient(180deg,#FFFFFF,#F7F9FC);border-color:#D6DBE5}
+:root[data-theme="light"] .upload-zone:hover{background:rgba(30,84,232,0.04);border-color:#1E54E8}
 .tab-bar{display:inline-flex;gap:2px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:24px}
 .tab{padding:8px 18px;border-radius:7px;font-size:12px;font-weight:500;color:var(--text2);border:none;background:transparent;transition:all .15s;cursor:pointer;letter-spacing:-0.005em}
 .tab:hover{color:var(--text)}
@@ -276,20 +307,31 @@ const LOGO_TCL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAV4AAAAoCAYAAAC2
 
 function LogoRVLight({h=38}){
   return (
-    <svg height={h} viewBox="0 0 240 64" xmlns="http://www.w3.org/2000/svg" style={{display:'block'}} aria-label="RV energía">
+    <svg height={h} viewBox="0 0 260 64" xmlns="http://www.w3.org/2000/svg" style={{display:'block'}} aria-label="RV energía">
       <defs>
-        <linearGradient id="rv-l-blue" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="rv-l-blue" x1="0.1" y1="0.1" x2="0.9" y2="0.9">
           <stop offset="0" stopColor="#3B82F6"/>
-          <stop offset="1" stopColor="#1E40AF"/>
+          <stop offset="0.55" stopColor="#2563EB"/>
+          <stop offset="1" stopColor="#1E3A8A"/>
         </linearGradient>
-        <linearGradient id="rv-l-lime" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="rv-l-lime" x1="0.5" y1="0" x2="0.5" y2="1">
           <stop offset="0" stopColor="#BEF264"/>
           <stop offset="1" stopColor="#84CC16"/>
         </linearGradient>
       </defs>
-      <path d="M8 22 C 8 12, 22 8, 32 16 L 40 36 L 32 50 C 26 52, 18 50, 14 44 L 8 22 Z" fill="url(#rv-l-blue)"/>
-      <path d="M22 28 L 38 54 L 74 8 L 62 8 L 38 36 L 30 26 Z" fill="url(#rv-l-lime)"/>
-      <text x="88" y="44" fontFamily="'Poppins','Inter',sans-serif" fontSize="34" fontWeight="700" fill="#1E54E8" letterSpacing="-1.5">energía</text>
+      {/* Swoosh azul (R estilizada) */}
+      <path d="M10 18 C 14 6, 38 4, 50 18 L 30 50 C 22 52, 12 48, 8 38 Z" fill="url(#rv-l-blue)"/>
+      {/* Check verde lima (V estilizada superpuesta) */}
+      <path d="M24 26 L 40 50 L 76 6 L 64 6 L 38 36 L 32 26 Z" fill="url(#rv-l-lime)"/>
+      <text x="92" y="44" fontFamily="'Poppins','Inter',sans-serif" fontSize="36" fontWeight="600" fill="#1E54E8" letterSpacing="-1.8">energía</text>
+    </svg>
+  );
+}
+function LogoTCLLight({h=24}){
+  return (
+    <svg height={h} viewBox="0 0 220 50" xmlns="http://www.w3.org/2000/svg" style={{display:'block'}} aria-label="TCL SOLAR">
+      <text x="0" y="38" fontFamily="'Inter',sans-serif" fontSize="38" fontWeight="800" fill="#E32E2E" letterSpacing="-1">TCL</text>
+      <text x="86" y="38" fontFamily="'Inter',sans-serif" fontSize="38" fontWeight="800" fill="#2C2C2C" letterSpacing="-0.5">SOLAR</text>
     </svg>
   );
 }
@@ -304,8 +346,9 @@ function LogoRV({h=38,theme='dark'}){
   );
   return <img src={LOGO_RV} alt="RV Energía" style={{height:h,display:'block'}} onError={()=>setErr(true)}/>;
 }
-function LogoTCL({h=24}){
+function LogoTCL({h=24,theme='dark'}){
   const [err,setErr]=useState(false);
+  if(theme==='light') return <LogoTCLLight h={h}/>;
   if(err) return <span style={{fontSize:11,color:'var(--text3)',fontWeight:500}}>TCL Solar × GoodWe</span>;
   return <img src={LOGO_TCL} alt="TCL Solar" style={{height:h,display:'block',opacity:.85}} onError={()=>setErr(true)}/>;
 }
@@ -646,7 +689,7 @@ Buscá "Total Consumo X kWh" o lecturas del medidor. El importe es "Total a paga
         </div>
         <div style={{display:'flex',alignItems:'center',gap:14}}>
           <ThemeToggle theme={theme} setTheme={setTheme}/>
-          <LogoTCL h={24}/>
+          <LogoTCL h={24} theme={theme}/>
         </div>
       </div>
 
@@ -1171,7 +1214,7 @@ function Results({opt,rob,kwhMes,sysMode,phase,roof,zone,billData,factura,setFac
         </div>
         <div style={{display:'flex',alignItems:'center',gap:12}}>
           <ThemeToggle theme={theme} setTheme={setTheme}/>
-          <LogoTCL h={24}/>
+          <LogoTCL h={24} theme={theme}/>
           <button className="btn btn-ghost btn-sm" onClick={onBack}>← Modificar</button>
         </div>
       </div>
